@@ -2,17 +2,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingBag } from "lucide-react";
 import { useState } from "react";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  category: string;
-  isNew?: boolean;
-  isSale?: boolean;
-}
+import { Product } from "@/types";
+import { useCart } from "@/contexts/CartContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/sonner";
 
 interface ProductCardProps {
   product: Product;
@@ -20,9 +13,23 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const { addItem } = useCart();
+  const navigate = useNavigate();
   
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  
+    // Add with first available size
+    const defaultSize = product.sizes[0];
+    addItem(product, defaultSize);
+    toast.success(`${product.name} added to cart!`);
+  };
+
   return (
-    <Card className="group cursor-pointer overflow-hidden border-0 shadow-card hover:shadow-elegant transition-all duration-300 hover:-translate-y-2 bg-gradient-card">
+    <Card 
+      className="group cursor-pointer overflow-hidden border-0 shadow-card hover:shadow-elegant transition-all duration-300 hover:-translate-y-2 bg-gradient-card"
+      onClick={() => navigate(`/product/${product.id}`)}
+    >
       <div className="relative overflow-hidden">
         <img 
           src={product.image} 
@@ -64,6 +71,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <Button 
             className="w-full bg-white text-foreground hover:bg-accent hover:text-accent-foreground transition-smooth"
             size="sm"
+            onClick={handleAddToCart}
           >
             <ShoppingBag className="h-4 w-4 mr-2" />
             Add to Cart
@@ -71,7 +79,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
       </div>
       
-      <div className="p-4">
+      <div className="p-4" onClick={() => navigate(`/product/${product.id}`)}>
         <p className="text-sm text-muted-foreground mb-1">{product.category}</p>
         <h3 className="font-semibold mb-2 group-hover:text-accent transition-smooth">
           {product.name}

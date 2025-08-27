@@ -6,18 +6,12 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Package } from 'lucide-react';
-import { Order } from '@/types';
+import { useOrders } from '@/hooks/useOrders';
 
 const OrderHistoryPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<Order[]>([]);
-
-  useEffect(() => {
-    // Get orders from localStorage
-    const storedOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-    setOrders(storedOrders);
-  }, []);
+  const { orders, loading } = useOrders();
 
   if (!user) {
     return (
@@ -27,6 +21,18 @@ const OrderHistoryPage = () => {
           <Button onClick={() => navigate('/')}>
             Go to Home
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+          </div>
         </div>
       </div>
     );

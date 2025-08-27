@@ -4,19 +4,26 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle, Package, Truck, Home } from 'lucide-react';
-import { Order } from '@/types';
+import { useOrders } from '@/hooks/useOrders';
 
 const OrderConfirmationPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const [order, setOrder] = useState<Order | null>(null);
+  const { getOrderById, loading } = useOrders();
+  
+  const order = orderId ? getOrderById(orderId) : null;
 
   useEffect(() => {
-    // Get order from localStorage
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const foundOrder = orders.find((o: Order) => o.id === orderId);
-    setOrder(foundOrder);
-  }, [orderId]);
+    // Order will be loaded by useOrders hook
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (

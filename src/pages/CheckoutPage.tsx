@@ -9,11 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-import { Order } from '@/types';
+import { useOrders } from '@/hooks/useOrders';
 
 const CheckoutPage = () => {
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
+  const { createOrder } = useOrders();
   const navigate = useNavigate();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -66,25 +67,19 @@ const CheckoutPage = () => {
       // Simulate order processing
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Create order
-      const order: Order = {
-        id: Date.now().toString(),
-        items: [...items],
-        total: total * 1.08, // Including tax
-        status: 'Placed',
-        orderDate: new Date().toISOString(),
-        deliveryAddress,
-      };
+      // Create order in Supabase
+      const orderId = await createOrder(items, total * 1.08, deliveryAddress);
       
-      // Save order to localStorage (in real app, this would be sent to backend)
-      const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-      localStorage.setItem('orders', JSON.stringify([order, ...existingOrders]));
+      if (!orderId) {
+        toast.error('Failed to create order. Please try again.');
+        return;
+      }
       
       // Clear cart
       clearCart();
       
       toast.success('Order placed successfully!');
-      navigate(`/order-confirmation/${order.id}`);
+      navigate(`/order-confirmation/${orderId}`);
       
     } catch (error) {
       toast.error('Failed to place order. Please try again.');

@@ -46,19 +46,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       return;
     }
     
+    if (signupForm.password.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
+      console.log('Attempting signup with:', signupForm.email, signupForm.name);
+      
       const success = await signup(signupForm.email, signupForm.password, signupForm.name);
       if (success) {
-        toast.success('Account created successfully!');
+        toast.success('Account created successfully! Please check your email if confirmation is required.');
         onClose();
         setSignupForm({ name: '', email: '', password: '', confirmPassword: '' });
       } else {
-        toast.error('Signup failed. Please try again.');
+        toast.error('Signup failed. Please check your details and try again.');
       }
     } catch (error) {
-      toast.error('Signup failed. Please try again.');
+      console.error('Signup form error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -45,6 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
+      console.log('Fetching profile for user:', supabaseUser.id);
+      
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -52,10 +54,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching profile:', error.message);
+        
+        // If profile doesn't exist, try to create it
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, creating new profile...');
+          
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: supabaseUser.id,
+              email: supabaseUser.email || '',
+              name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+            })
+            .select()
+            .single();
+            
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            return;
+          }
+          
+          console.log('Profile created successfully:', newProfile);
+          
+          if (newProfile) {
+            const userData: User = {
+              id: newProfile.id,
+              email: newProfile.email,
+              name: newProfile.name,
+              address: newProfile.street ? {
+                street: newProfile.street,
+                city: newProfile.city || '',
+                state: newProfile.state || '',
+                zipCode: newProfile.zip_code || '',
+                country: newProfile.country || 'United States',
+              } : undefined,
+            };
+            setUser(userData);
+          }
+          return;
+        }
+        
         return;
       }
 
+      console.log('Profile fetched successfully:', profile);
+      
       if (profile) {
         const userData: User = {
           id: profile.id,
@@ -102,6 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
+      console.log('Starting signup process for:', email);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -113,22 +159,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        console.error('Signup error:', error);
+        console.error('Signup error:', error.message, error);
+        
+        // Handle specific error cases
+        if (error.message.includes('Database error')) {
+          console.error('Database connection issue. Please check Supabase configuration.');
+        }
+        
         return false;
       }
 
+      console.log('Signup successful:', data);
+      
       if (data.user) {
-        // Profile will be created automatically by the trigger
-        // Wait a moment for the trigger to complete
-        setTimeout(async () => {
-          await fetchUserProfile(data.user!);
-        }, 1000);
+        // Check if user needs email confirmation
+        if (!data.session) {
+          console.log('User created but needs email confirmation');
+          return true; // Still consider it successful
+        }
+        
+        // If we have a session, try to fetch/create profile
+        try {
+          await fetchUserProfile(data.user);
+        } catch (profileError) {
+          console.error('Profile creation error:', profileError);
+          // Still return true as the user was created successfully
+        }
+        
         return true;
       }
 
       return false;
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('Signup catch error:', error);
       return false;
     }
   };

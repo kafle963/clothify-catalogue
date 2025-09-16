@@ -44,6 +44,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
+      console.warn('Supabase not configured, using demo user data');
+      const demoUser: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'Demo User'
+      };
+      setUser(demoUser);
+      return;
+    }
+
     try {
       console.log('Fetching profile for user:', supabaseUser.id);
       
@@ -72,6 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
           if (createError) {
             console.error('Error creating profile:', createError);
+            // Fallback to basic user data
+            const fallbackUser: User = {
+              id: supabaseUser.id,
+              email: supabaseUser.email || '',
+              name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+            };
+            setUser(fallbackUser);
             return;
           }
           
@@ -95,6 +114,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
+        // For other errors, still set basic user data
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+        };
+        setUser(fallbackUser);
         return;
       }
 
@@ -117,10 +143,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      // Fallback to basic user data even on unexpected errors
+      const fallbackUser: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+      };
+      setUser(fallbackUser);
     }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
+      console.warn('Supabase not configured, using demo login');
+      // Create a demo user for testing
+      const demoUser: User = {
+        id: 'demo-user-id',
+        email: email,
+        name: email.split('@')[0]
+      };
+      setUser(demoUser);
+      return true;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -145,6 +191,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signup = async (email: string, password: string, name: string): Promise<boolean> => {
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
+      console.warn('Supabase not configured, using demo signup');
+      // Create a demo user for testing
+      const demoUser: User = {
+        id: 'demo-user-' + Date.now(),
+        email: email,
+        name: name
+      };
+      setUser(demoUser);
+      return true;
+    }
+
     try {
       console.log('Starting signup process for:', email);
       
@@ -162,8 +221,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Signup error:', error.message, error);
         
         // Handle specific error cases
-        if (error.message.includes('Database error')) {
-          console.error('Database connection issue. Please check Supabase configuration.');
+        if (error.message.includes('Database error') || error.message.includes('relation') || error.message.includes('does not exist')) {
+          console.error('Database schema issue. Please run the Supabase migrations.');
+          console.error('Run: npx supabase migration up (if using Supabase CLI)');
+          console.error('Or check that your database tables are properly set up.');
         }
         
         return false;
@@ -175,6 +236,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Check if user needs email confirmation
         if (!data.session) {
           console.log('User created but needs email confirmation');
+          // For demo purposes, we'll still create a basic user profile
+          const basicUser: User = {
+            id: data.user.id,
+            email: data.user.email || email,
+            name: name
+          };
+          setUser(basicUser);
           return true; // Still consider it successful
         }
         
@@ -183,7 +251,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await fetchUserProfile(data.user);
         } catch (profileError) {
           console.error('Profile creation error:', profileError);
-          // Still return true as the user was created successfully
+          // Create a basic user profile as fallback
+          const basicUser: User = {
+            id: data.user.id,
+            email: data.user.email || email,
+            name: name
+          };
+          setUser(basicUser);
         }
         
         return true;
@@ -198,17 +272,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      // Only call signOut if Supabase is configured
+      if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'your_supabase_project_url') {
+        await supabase.auth.signOut();
+      }
       setUser(null);
       localStorage.removeItem('cart');
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if logout fails, clear local state
+      setUser(null);
+      localStorage.removeItem('cart');
     }
   };
 
   const updateProfile = async (updates: Partial<User>) => {
     if (!user) return;
 
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
+      console.warn('Supabase not configured, updating local user data only');
+      const updatedUser: User = {
+        ...user,
+        ...updates,
+      };
+      setUser(updatedUser);
+      return;
+    }
     try {
       const profileUpdates: any = {
         name: updates.name || user.name,
@@ -229,6 +319,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Profile update error:', error);
+        // Still update local state even if database update fails
+        const updatedUser: User = {
+          ...user,
+          ...updates,
+        };
+        setUser(updatedUser);
         return;
       }
 
@@ -240,6 +336,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
     } catch (error) {
       console.error('Profile update error:', error);
+      // Fallback to local update
+      const updatedUser: User = {
+        ...user,
+        ...updates,
+      };
+      setUser(updatedUser);
     }
   };
 

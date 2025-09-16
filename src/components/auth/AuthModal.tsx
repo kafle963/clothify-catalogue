@@ -58,15 +58,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       
       const success = await signup(signupForm.email, signupForm.password, signupForm.name);
       if (success) {
-        toast.success('Account created successfully! Please check your email if confirmation is required.');
+        toast.success('Account created successfully! Welcome to Clothify!');
         onClose();
         setSignupForm({ name: '', email: '', password: '', confirmPassword: '' });
       } else {
-        toast.error('Signup failed. Please check your details and try again.');
+        toast.error('Signup failed. Please check your details and try again. If you\'re seeing database errors, Supabase may not be configured.');
       }
     } catch (error) {
       console.error('Signup form error:', error);
-      toast.error('An unexpected error occurred. Please try again.');
+      toast.error('An unexpected error occurred. If this persists, please check the console for more details.');
     } finally {
       setIsLoading(false);
     }

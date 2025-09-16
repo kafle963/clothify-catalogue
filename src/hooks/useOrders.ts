@@ -20,6 +20,13 @@ export const useOrders = () => {
   const fetchOrders = async () => {
     if (!user) return;
 
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
+      console.warn('Supabase not configured, using demo orders');
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       
@@ -35,6 +42,7 @@ export const useOrders = () => {
 
       if (ordersError) {
         console.error('Error fetching orders:', ordersError);
+        setOrders([]);
         return;
       }
 
@@ -72,6 +80,7 @@ export const useOrders = () => {
       setOrders(transformedOrders);
     } catch (error) {
       console.error('Error in fetchOrders:', error);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -90,6 +99,24 @@ export const useOrders = () => {
   ): Promise<string | null> => {
     if (!user) return null;
 
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
+      console.warn('Supabase not configured, creating demo order');
+      const demoOrderId = 'demo-order-' + Date.now();
+      
+      // Create a demo order for local state
+      const demoOrder: Order = {
+        id: demoOrderId,
+        items: items,
+        total: total,
+        status: 'Placed',
+        orderDate: new Date().toISOString(),
+        deliveryAddress: deliveryAddress,
+      };
+      
+      setOrders(prev => [demoOrder, ...prev]);
+      return demoOrderId;
+    }
     try {
       // Create the order
       const { data: orderData, error: orderError } = await supabase

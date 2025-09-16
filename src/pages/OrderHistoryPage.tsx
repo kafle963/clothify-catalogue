@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Package } from 'lucide-react';
 import { useOrders } from '@/hooks/useOrders';
+import Navigation from '@/components/Navigation';
 
 const OrderHistoryPage = () => {
   const { user } = useAuth();
@@ -15,12 +16,15 @@ const OrderHistoryPage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please log in to view your orders</h1>
-          <Button onClick={() => navigate('/')}>
-            Go to Home
-          </Button>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)'}}>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Please log in to view your orders</h1>
+            <Button onClick={() => navigate('/')}>
+              Go to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -29,6 +33,7 @@ const OrderHistoryPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
+        <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-16">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
@@ -55,6 +60,7 @@ const OrderHistoryPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">

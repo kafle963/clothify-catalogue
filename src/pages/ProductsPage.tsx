@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from '@/components/ui/sonner';
+import Navigation from '@/components/Navigation';
 
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -101,6 +102,7 @@ const ProductsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

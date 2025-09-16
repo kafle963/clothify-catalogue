@@ -44,9 +44,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
+    console.log('🔄 Starting fetchUserProfile for user:', supabaseUser.id);
+    console.log('📧 User email:', supabaseUser.email);
+    console.log('🔧 Environment check:', {
+      hasUrl: !!import.meta.env.VITE_SUPABASE_URL,
+      hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+      url: import.meta.env.VITE_SUPABASE_URL,
+      urlLength: import.meta.env.VITE_SUPABASE_URL?.length || 0
+    });
+    
     // Check if Supabase is properly configured
-    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
-      console.warn('Supabase not configured, using demo user data');
+    if (!import.meta.env.VITE_SUPABASE_URL || 
+        !import.meta.env.VITE_SUPABASE_ANON_KEY ||
+        import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url' ||
+        import.meta.env.VITE_SUPABASE_ANON_KEY === 'your_supabase_anon_key') {
+      console.warn('⚠️ Supabase not properly configured, using demo user data');
+      console.warn('📋 To fix this issue:');
+      console.warn('1. Create a Supabase project at https://supabase.com');
+      console.warn('2. Copy your project URL and anon key to the .env file');
+      console.warn('3. Restart your development server');
+      
       const demoUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -57,34 +74,132 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      console.log('Fetching profile for user:', supabaseUser.id);
+      console.log('🔍 Attempting to fetch profile from Supabase...');
+      
+      // Test Supabase connection first
+      const { data: sessionData, error: connectionError } = await supabase.auth.getSession();
+      if (connectionError) {
+        console.error('❌ Supabase connection error:', connectionError);
+        throw new Error(`Supabase connection failed: ${connectionError.message}`);
+      }
+      
+      console.log('✅ Supabase connection successful');
+      console.log('🔐 Session info:', {
+        hasSession: !!sessionData.session,
+        userId: sessionData.session?.user?.id,
+        userEmail: sessionData.session?.user?.email,
+        currentUserIdMatches: sessionData.session?.user?.id === supabaseUser.id
+      });
+      
+      // Check if the current session matches the user we're trying to fetch
+      if (!sessionData.session || sessionData.session.user.id !== supabaseUser.id) {
+        console.warn('⚠️ Session user mismatch or no session found');
+        console.log('🔄 Creating fallback user from auth user data');
+        
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+        };
+        setUser(fallbackUser);
+        return;
+      }
+      
+      console.log('📊 Executing profile query...');
       
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .single();
+        
+      console.log('📝 Profile query completed:', { 
+        hasProfile: !!profile, 
+        hasError: !!error,
+        errorCode: error?.code,
+        errorMessage: error?.message 
+      });
 
       if (error) {
-        console.error('Error fetching profile:', error.message);
+        console.error('❌ Error fetching profile:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         
-        // If profile doesn't exist, try to create it
-        if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating new profile...');
+        // Handle specific error cases
+        if (error.code === '42P01') {
+          console.error('🚨 Table does not exist: profiles table is missing from database');
+          console.error('💡 Solution: Run database migrations or create the profiles table');
+        } else if (error.code === '42501') {
+          console.error('🚨 Permission denied: Check RLS policies on profiles table');
+          console.error('💡 Solution: Ensure RLS policies allow authenticated users to read their own profiles');
+        } else if (error.code === 'PGRST116') {
+          console.log('🔨 Profile not found, attempting to create new profile...');
+          
+          const profileData = {
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+          };
+          
+          console.log('📝 Creating profile with data:', profileData);
           
           const { data: newProfile, error: createError } = await supabase
             .from('profiles')
-            .insert({
-              id: supabaseUser.id,
-              email: supabaseUser.email || '',
-              name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
-            })
+            .insert(profileData)
             .select()
             .single();
             
           if (createError) {
-            console.error('Error creating profile:', createError);
+            console.error('❌ Error creating profile:', {
+              code: createError.code,
+              message: createError.message,
+              details: createError.details,
+              hint: createError.hint
+            });
+            
+            // Handle specific create errors
+            if (createError.message.includes('relation "profiles" does not exist')) {
+              console.error('🚨 Database schema issue: profiles table does not exist');
+              console.error('💡 Solution: Run the Supabase migrations or create the profiles table');
+              console.error('📄 Check: supabase/migrations/ folder for SQL scripts');
+            } else if (createError.code === '42501') {
+              console.error('🚨 Permission denied: Check RLS policies on profiles table');
+              console.error('💡 Solution: Ensure RLS policies allow authenticated users to insert their own profiles');
+            } else if (createError.code === '23505') {
+              console.error('🚨 Unique constraint violation: Profile might already exist');
+              console.log('🔄 Retrying profile fetch...');
+              
+              // Retry fetching the profile
+              const { data: retryProfile, error: retryError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', supabaseUser.id)
+                .single();
+                
+              if (!retryError && retryProfile) {
+                console.log('✅ Profile found on retry');
+                const userData: User = {
+                  id: retryProfile.id,
+                  email: retryProfile.email,
+                  name: retryProfile.name,
+                  address: retryProfile.street ? {
+                    street: retryProfile.street,
+                    city: retryProfile.city || '',
+                    state: retryProfile.state || '',
+                    zipCode: retryProfile.zip_code || '',
+                    country: retryProfile.country || 'United States',
+                  } : undefined,
+                };
+                setUser(userData);
+                return;
+              }
+            }
+            
             // Fallback to basic user data
+            console.log('🔄 Using fallback user data due to create error');
             const fallbackUser: User = {
               id: supabaseUser.id,
               email: supabaseUser.email || '',
@@ -94,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
           }
           
-          console.log('Profile created successfully:', newProfile);
+          console.log('✅ Profile created successfully:', newProfile);
           
           if (newProfile) {
             const userData: User = {
@@ -112,9 +227,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(userData);
           }
           return;
+        } else if (error.code === 'PGRST301') {
+          console.error('🚨 Multiple rows returned when expecting single row');
         }
         
         // For other errors, still set basic user data
+        console.log('🔄 Using fallback user data due to fetch error');
         const fallbackUser: User = {
           id: supabaseUser.id,
           email: supabaseUser.email || '',
@@ -124,7 +242,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      console.log('Profile fetched successfully:', profile);
+      console.log('✅ Profile fetched successfully:', profile);
       
       if (profile) {
         const userData: User = {
@@ -139,10 +257,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             country: profile.country || 'United States',
           } : undefined,
         };
+        console.log('✅ User data assembled:', userData);
         setUser(userData);
       }
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+    } catch (error: any) {
+      console.error('💥 Unexpected error in fetchUserProfile:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
+      // Check for network errors
+      if (error.message.includes('fetch')) {
+        console.error('🌐 Network error: Check internet connection and Supabase URL');
+      } else if (error.message.includes('Invalid API key')) {
+        console.error('🔑 Invalid API key: Check VITE_SUPABASE_ANON_KEY in .env file');
+      }
+      
       // Fallback to basic user data even on unexpected errors
       const fallbackUser: User = {
         id: supabaseUser.id,

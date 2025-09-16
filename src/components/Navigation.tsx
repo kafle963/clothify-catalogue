@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingBag, Search, User, Menu, LogOut } from "lucide-react";
+import { ShoppingBag, Search, User, Menu, LogOut, Shirt } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
@@ -35,9 +35,14 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold cursor-pointer" onClick={() => navigate('/')}>
-              Clothify
-            </h1>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+              <div className="bg-accent p-2 rounded-lg">
+                <Shirt className="h-6 w-6 text-accent-foreground" />
+              </div>
+              <h1 className="text-2xl font-bold">
+                Clothify
+              </h1>
+            </div>
           </div>
           
           {/* Desktop Navigation */}

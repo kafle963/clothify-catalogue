@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Minus, Trash2, ArrowLeft, ShoppingBag } from 'lucide-react';
+import Navigation from '@/components/Navigation';
 
 const CartPage = () => {
   const { items, updateQuantity, removeItem, total, itemCount } = useCart();
@@ -13,6 +14,7 @@ const CartPage = () => {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-background">
+        <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-16">
             <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -31,6 +33,7 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">

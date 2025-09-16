@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle, Package, Truck, Home } from 'lucide-react';
 import { useOrders } from '@/hooks/useOrders';
+import Navigation from '@/components/Navigation';
 
 const OrderConfirmationPage = () => {
   const { orderId } = useParams();
@@ -19,20 +20,26 @@ const OrderConfirmationPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)'}}>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+        </div>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Order not found</h1>
-          <Button onClick={() => navigate('/')}>
-            Go to Home
-          </Button>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="flex items-center justify-center" style={{minHeight: 'calc(100vh - 80px)'}}>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Order not found</h1>
+            <Button onClick={() => navigate('/')}>
+              Go to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -40,6 +47,7 @@ const OrderConfirmationPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Success Header */}

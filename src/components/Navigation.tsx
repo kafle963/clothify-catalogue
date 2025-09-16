@@ -71,7 +71,7 @@ const Navigation = () => {
           {/* Search Bar */}
           <div className="hidden md:flex items-center relative max-w-sm flex-1 mx-8">
             <form onSubmit={handleSearch} className="w-full relative">
-              <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 h-4 w-4 top-3 text-muted-foreground" />
               <Input
                 placeholder="Search products..."
                 value={searchQuery}

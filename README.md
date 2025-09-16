@@ -4,6 +4,33 @@
 
 **URL**: https://lovable.dev/projects/e5565837-9975-471a-95f0-6af75327c604
 
+## Supabase Setup (Required for Full Functionality)
+
+This project uses Supabase for authentication and data storage. To enable full functionality:
+
+1. **Create a Supabase Project**
+   - Go to [https://supabase.com](https://supabase.com)
+   - Create a new project
+   - Wait for the project to be ready
+
+2. **Configure Environment Variables**
+   - Copy your project URL and anon key from the Supabase dashboard
+   - Update the `.env` file with your actual values:
+     ```
+     VITE_SUPABASE_URL=your_actual_supabase_url
+     VITE_SUPABASE_ANON_KEY=your_actual_anon_key
+     ```
+
+3. **Run Database Migrations**
+   - The project includes pre-built migrations in `supabase/migrations/`
+   - You can run these using the Supabase CLI or by copying the SQL to your Supabase SQL editor
+   - The migrations create tables for user profiles, orders, and order items
+
+4. **Demo Mode**
+   - If Supabase is not configured, the app will run in demo mode
+   - You can still test the UI and functionality with mock data
+   - Authentication will work locally but data won't persist
+
 ## How can I edit this code?
 
 There are several ways of editing your application.

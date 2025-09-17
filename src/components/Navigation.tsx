@@ -113,21 +113,21 @@ const Navigation = () => {
           </div>
           
           {/* Search Bar */}
-          <div className="hidden lg:flex items-center relative max-w-xs xl:max-w-sm flex-1 mx-4 xl:mx-8 group">
+          <div className="hidden lg:flex items-center relative max-w-md xl:max-w-lg 2xl:max-w-xl flex-1 mx-6 xl:mx-10 group">
             <form onSubmit={handleSearch} className="w-full relative flex">
               <div className="relative flex-1">
                 <Search className="absolute left-3 h-4 w-4 top-3 text-muted-foreground transition-all duration-300 group-hover:text-accent group-active:text-accent group-focus-within:text-accent" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder="Search for products, brands, categories..."
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-9 pr-3 bg-muted/50 border-0 focus:bg-background focus:shadow-card transition-all duration-300 hover:bg-muted/80 group-hover:shadow-md active:bg-muted/90 active:scale-[0.99] focus:scale-[1.01] rounded-r-none text-sm"
+                  className="pl-9 pr-3 bg-muted/50 border-0 focus:bg-background focus:shadow-card transition-all duration-300 hover:bg-muted/80 group-hover:shadow-md active:bg-muted/90 active:scale-[0.99] focus:scale-[1.01] rounded-r-none text-sm xl:text-base h-10 xl:h-11"
                 />
               </div>
               <Button 
                 type="submit" 
                 size="sm"
-                className="bg-accent hover:bg-accent/80 text-accent-foreground px-3 xl:px-4 py-2 rounded-l-none h-10 transition-all duration-300 hover:scale-105 hover:shadow-lg group-hover:shadow-lg group-hover:bg-accent/85 active:scale-95 active:bg-accent/70 focus:scale-105 focus:shadow-xl"
+                className="bg-accent hover:bg-accent/80 text-accent-foreground px-3 xl:px-4 py-2 rounded-l-none h-10 xl:h-11 transition-all duration-300 hover:scale-105 hover:shadow-lg group-hover:shadow-lg group-hover:bg-accent/85 active:scale-95 active:bg-accent/70 focus:scale-105 focus:shadow-xl"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -265,13 +265,13 @@ const Navigation = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 h-4 w-4 top-3 text-muted-foreground transition-all duration-300 group-hover:text-accent" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder="Search for products, brands, categories..."
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-9 bg-muted/50 border-0 focus:bg-background focus:shadow-card transition-all duration-300 hover:bg-muted/80"
+                  className="pl-9 bg-muted/50 border-0 focus:bg-background focus:shadow-card transition-all duration-300 hover:bg-muted/80 h-11"
                 />
               </div>
-              <Button type="submit" size="sm" className="bg-accent hover:bg-accent/80 text-accent-foreground">
+              <Button type="submit" size="sm" className="bg-accent hover:bg-accent/80 text-accent-foreground h-11 px-4">
                 <Search className="h-4 w-4" />
               </Button>
             </form>

@@ -268,7 +268,7 @@ const ProductsPage = () => {
                 <img 
                   src={product.image} 
                   alt={product.name}
-                  className="w-full h-48 sm:h-64 lg:h-80 object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="w-full h-48 sm:h-64 lg:h-80 object-contain transition-transform duration-500 group-hover:scale-110"
                   onClick={() => navigate(`/product/${product.id}`)}
                 />
                 

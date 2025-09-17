@@ -1,0 +1,15 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with rounded corners -->
+  <rect width="192" height="192" rx="32" fill="#000000"/>
+  
+  <!-- Shirt icon scaled and centered -->
+  <g transform="translate(96, 96)">
+    <!-- Shirt body -->
+    <path d="M36 6V-24c0-13.255-10.745-24-24-24s-24 10.745-24 24v24M-48 -6h72l6 72H-54L-48 -6z" 
+          stroke="#ffffff" 
+          stroke-width="8" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+  </g>
+</svg>

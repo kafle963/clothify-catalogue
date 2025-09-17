@@ -99,7 +99,7 @@ const ProductDetailPage = () => {
               <img 
                 src={product.image} 
                 alt={product.name}
-                className="w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] object-cover"
+                className="w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] object-contain"
               />
               
               {/* Badges */}
@@ -352,7 +352,7 @@ const ProductDetailPage = () => {
                     <img 
                       src={relatedProduct.image} 
                       alt={relatedProduct.name}
-                      className="w-full h-32 sm:h-48 lg:h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-32 sm:h-48 lg:h-64 object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
                   <h3 className="font-medium mb-1 group-hover:text-accent transition-smooth text-sm sm:text-base line-clamp-2">

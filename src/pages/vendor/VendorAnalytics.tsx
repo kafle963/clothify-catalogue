@@ -18,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useVendorAuth } from '@/contexts/VendorAuthContext';
-import VendorNavigation from '@/components/VendorNavigation';
 
 const VendorAnalytics = () => {
   const { vendor } = useVendorAuth();
@@ -108,8 +107,6 @@ const VendorAnalytics = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <VendorNavigation />
-      
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">

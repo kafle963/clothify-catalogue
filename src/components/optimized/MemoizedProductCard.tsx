@@ -44,7 +44,7 @@ const MemoizedProductCard = React.memo<ProductCardProps>(({ product }) => {
         <img 
           src={product.image} 
           alt={product.name}
-          className="w-full h-48 sm:h-56 object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-48 sm:h-56 object-contain transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
         

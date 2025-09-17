@@ -36,7 +36,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <img 
           src={product.image} 
           alt={product.name}
-          className="w-full h-80 object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-80 object-contain transition-transform duration-500 group-hover:scale-110"
         />
         
         {/* Image Overlay */}

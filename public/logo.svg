@@ -1,0 +1,14 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#000000"/>
+  
+  <!-- Shirt icon centered -->
+  <g transform="translate(16, 16)">
+    <path d="M5 0V-4a3 3 0 00-6 0v4M-6 -1h12l0.8 10H-6.8L-6 -1z" 
+          stroke="#ffffff" 
+          stroke-width="1.8" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+  </g>
+</svg>

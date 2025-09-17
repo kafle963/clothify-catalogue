@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from 'react';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
-import PerformanceMonitor from './components/dev/PerformanceMonitor';
 // Lazy load pages for better performance
 const Index = lazy(() => import('./pages/Index'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
@@ -80,7 +79,6 @@ const App = () => (
                       </Routes>
                     </Suspense>
                     <AIAssistant />
-                    <PerformanceMonitor />
                   </BrowserRouter>
                 </TooltipProvider>
               </AIProvider>

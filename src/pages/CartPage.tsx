@@ -56,7 +56,7 @@ const CartPage = () => {
                   <img 
                     src={item.product.image} 
                     alt={item.product.name}
-                    className="w-24 h-24 object-cover rounded-lg cursor-pointer"
+                    className="w-24 h-24 object-contain rounded-lg cursor-pointer"
                     onClick={() => navigate(`/product/${item.product.id}`)}
                   />
                   

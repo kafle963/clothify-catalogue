@@ -223,7 +223,7 @@ const CheckoutPage = () => {
                     <img 
                       src={item.product.image} 
                       alt={item.product.name}
-                      className="w-16 h-16 object-cover rounded"
+                      className="w-16 h-16 object-contain rounded"
                     />
                     <div className="flex-1">
                       <h4 className="font-medium">{item.product.name}</h4>

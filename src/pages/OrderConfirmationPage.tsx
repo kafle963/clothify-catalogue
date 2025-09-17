@@ -93,7 +93,7 @@ const OrderConfirmationPage = () => {
                   <img 
                     src={item.product.image} 
                     alt={item.product.name}
-                    className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-105 transition-transform"
+                    className="w-16 h-16 object-contain rounded cursor-pointer hover:scale-105 transition-transform"
                     onClick={() => navigate(`/product/${item.product.id}`)}
                   />
                   <div className="flex-1">

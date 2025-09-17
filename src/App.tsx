@@ -11,9 +11,11 @@ import CheckoutPage from "./pages/CheckoutPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import ProfilePage from "./pages/ProfilePage";
+import FavoritesPage from "@/pages/FavoritesPage";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
+import { WishlistProvider } from "./contexts/WishlistContext";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +23,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <CartProvider>
-        <TooltipProvider>
+        <WishlistProvider>
+          <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -34,11 +37,13 @@ const App = () => (
               <Route path="/order-confirmation/:orderId" element={<OrderConfirmationPage />} />
               <Route path="/orders" element={<OrderHistoryPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/favorites" element={<FavoritesPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   </QueryClientProvider>

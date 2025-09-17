@@ -60,17 +60,23 @@ const OrderConfirmationPage = () => {
           </div>
 
           {/* Order Details */}
-          <Card className="p-6 mb-6">
+          <Card className="p-6 mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-xl font-bold">Order #{order.id}</h2>
+                <h2 className="text-xl font-bold">Order #{order.id.slice(-8).toUpperCase()}</h2>
                 <p className="text-muted-foreground">
-                  Placed on {new Date(order.orderDate).toLocaleDateString()}
+                  Placed on {new Date(order.orderDate).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Status</p>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <CheckCircle className="h-4 w-4 mr-1" />
                   {order.status}
                 </span>
               </div>
@@ -78,20 +84,29 @@ const OrderConfirmationPage = () => {
 
             {/* Order Items */}
             <div className="space-y-4 mb-6">
-              <h3 className="font-semibold">Items Ordered</h3>
-              {order.items.map((item) => (
-                <div key={`${item.product.id}-${item.size}`} className="flex gap-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Items Ordered ({order.items.reduce((sum, item) => sum + item.quantity, 0)} items)
+              </h3>
+              {order.items.map((item, index) => (
+                <div key={`${item.product.id}-${item.size}-${index}`} className="flex gap-3 p-3 rounded-lg bg-white/70">
                   <img 
                     src={item.product.image} 
                     alt={item.product.name}
-                    className="w-16 h-16 object-cover rounded"
+                    className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => navigate(`/product/${item.product.id}`)}
                   />
                   <div className="flex-1">
-                    <h4 className="font-medium">{item.product.name}</h4>
+                    <h4 
+                      className="font-medium cursor-pointer hover:text-accent transition-smooth"
+                      onClick={() => navigate(`/product/${item.product.id}`)}
+                    >
+                      {item.product.name}
+                    </h4>
                     <p className="text-sm text-muted-foreground">
-                      Size: {item.size} • Quantity: {item.quantity}
+                      Size: <span className="font-medium">{item.size}</span> • Quantity: <span className="font-medium">{item.quantity}</span>
                     </p>
-                    <p className="font-medium">${(item.product.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium text-accent">${(item.product.price * item.quantity).toFixed(2)}</p>
                   </div>
                 </div>
               ))}
@@ -100,17 +115,37 @@ const OrderConfirmationPage = () => {
             <Separator className="my-4" />
 
             {/* Order Total */}
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total</span>
-              <span>${order.total.toFixed(2)}</span>
+            <div className="bg-white/70 p-4 rounded-lg">
+              <div className="space-y-2 mb-3">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal</span>
+                  <span>${(order.total / 1.08).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Shipping</span>
+                  <span className="text-green-600">Free</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Tax (8%)</span>
+                  <span>${((order.total / 1.08) * 0.08).toFixed(2)}</span>
+                </div>
+              </div>
+              <Separator className="my-2" />
+              <div className="flex justify-between text-lg font-bold">
+                <span>Total</span>
+                <span className="text-accent">${order.total.toFixed(2)}</span>
+              </div>
             </div>
           </Card>
 
           {/* Delivery Address */}
           <Card className="p-6 mb-6">
-            <h3 className="font-semibold mb-3">Delivery Address</h3>
-            <div className="text-muted-foreground">
-              <p>{order.deliveryAddress.street}</p>
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Home className="h-5 w-5" />
+              Delivery Address
+            </h3>
+            <div className="text-muted-foreground bg-muted/30 p-4 rounded-lg">
+              <p className="font-medium text-foreground">{order.deliveryAddress.street}</p>
               <p>
                 {order.deliveryAddress.city}, {order.deliveryAddress.state} {order.deliveryAddress.zipCode}
               </p>
@@ -162,11 +197,20 @@ const OrderConfirmationPage = () => {
           </Card>
 
           {/* Actions */}
-          <div className="flex gap-4 justify-center">
-            <Button onClick={() => navigate('/orders')}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={() => navigate('/orders')}
+              className="flex items-center gap-2"
+            >
+              <Package className="h-4 w-4" />
               View Order History
             </Button>
-            <Button variant="outline" onClick={() => navigate('/products')}>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/products')}
+              className="flex items-center gap-2"
+            >
+              <Home className="h-4 w-4" />
               Continue Shopping
             </Button>
           </div>

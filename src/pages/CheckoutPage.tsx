@@ -71,25 +71,40 @@ const CheckoutPage = () => {
     setIsProcessing(true);
     
     try {
-      // Simulate order processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Simulate payment processing with more realistic steps
+      toast.info('Validating payment information...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.info('Processing payment...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast.info('Payment approved! Creating order...');
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Create order in Supabase
+      console.log('Attempting to create order in Supabase');
       const orderId = await createOrder(items, total * 1.08, deliveryAddress);
       
       if (!orderId) {
+        console.error('createOrder returned null');
         toast.error('Failed to create order. Please try again.');
         return;
       }
       
+      console.log('Order created with ID:', orderId);
+      toast.info('Order created successfully!');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Clear cart
       clearCart();
       
-      toast.success('Order placed successfully!');
+      toast.success('Order placed successfully! Redirecting to confirmation...');
+      await new Promise(resolve => setTimeout(resolve, 500));
       navigate(`/order-confirmation/${orderId}`);
       
     } catch (error) {
-      toast.error('Failed to place order. Please try again.');
+      console.error('Order placement error:', error);
+      toast.error('Failed to place order. Please check your connection and try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -252,7 +267,14 @@ const CheckoutPage = () => {
                 size="lg"
                 disabled={isProcessing}
               >
-                {isProcessing ? 'Processing...' : 'Place Order'}
+                {isProcessing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Processing Order...
+                  </div>
+                ) : (
+                  'Place Order'
+                )}
               </Button>
               
               <p className="text-xs text-muted-foreground mt-4 text-center">

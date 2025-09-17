@@ -144,6 +144,79 @@ export type Database = {
           created_at?: string
         }
       }
+      cart_items: {
+        Row: {
+          id: string
+          user_id: string
+          product_id: number
+          product_name: string
+          product_price: number
+          product_image: string
+          product_category: string
+          size: string
+          quantity: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          product_id: number
+          product_name: string
+          product_price: number
+          product_image: string
+          product_category: string
+          size: string
+          quantity?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          product_id?: number
+          product_name?: string
+          product_price?: number
+          product_image?: string
+          product_category?: string
+          size?: string
+          quantity?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      wishlist_items: {
+        Row: {
+          id: string
+          user_id: string
+          product_id: number
+          product_name: string
+          product_price: number
+          product_image: string
+          product_category: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          product_id: number
+          product_name: string
+          product_price: number
+          product_image: string
+          product_category: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          product_id?: number
+          product_name?: string
+          product_price?: number
+          product_image?: string
+          product_category?: string
+          created_at?: string
+        }
+      }
     }
   }
 }

@@ -46,21 +46,22 @@ const Categories = () => {
           {categories.map((category, index) => (
             <Card 
               key={category.id}
-              className={`group cursor-pointer overflow-hidden border-0 shadow-card hover:shadow-elegant transition-all duration-500 hover:-translate-y-3 animate-slide-up bg-gradient-to-br ${category.gradient}`}
+              className={`group cursor-pointer overflow-hidden border-0 shadow-card hover:shadow-elegant transition-all duration-500 hover:-translate-y-4 hover:scale-105 animate-slide-up bg-gradient-to-br ${category.gradient} relative`}
               style={{ animationDelay: `${index * 150}ms` }}
             >
-              <div className="p-8 text-center text-white">
-                <h3 className="text-2xl font-bold mb-2 group-hover:scale-110 transition-transform duration-300">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="p-8 text-center text-white relative z-10">
+                <h3 className="text-2xl font-bold mb-2 group-hover:scale-110 transition-all duration-300 group-hover:text-white">
                   {category.name}
                 </h3>
-                <p className="text-white/90 mb-3 text-lg">
+                <p className="text-white/90 mb-3 text-lg group-hover:text-white transition-colors duration-300">
                   {category.description}
                 </p>
-                <p className="text-white/80 text-sm font-medium">
+                <p className="text-white/80 text-sm font-medium group-hover:text-white/90 transition-colors duration-300">
                   {category.count}
                 </p>
-                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-md text-sm font-medium">
+                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                  <span className="inline-block bg-white/30 backdrop-blur-sm px-6 py-3 rounded-lg text-sm font-medium hover:bg-white/40 transition-all duration-300 border border-white/20">
                     Shop Now →
                   </span>
                 </div>

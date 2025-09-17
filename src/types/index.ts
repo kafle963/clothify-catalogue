@@ -11,6 +11,17 @@ export interface User {
   };
 }
 
+export interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  rating: number; // 1-5 stars
+  comment: string;
+  date: string;
+  verified: boolean;
+  helpful: number; // number of helpful votes
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -24,6 +35,9 @@ export interface Product {
   isNew?: boolean;
   isSale?: boolean;
   inStock: boolean;
+  reviews: Review[];
+  averageRating: number;
+  totalReviews: number;
 }
 
 export interface CartItem {
@@ -63,4 +77,5 @@ export interface CartContextType {
   clearCart: () => void;
   total: number;
   itemCount: number;
+  isLoading?: boolean;
 }

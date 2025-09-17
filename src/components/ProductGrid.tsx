@@ -33,7 +33,7 @@ const ProductGrid = () => {
         <div className="text-center mt-12">
           <button 
             onClick={() => navigate('/products')}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 rounded-md font-medium transition-smooth shadow-button"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3 rounded-md font-medium transition-all duration-300 shadow-button hover:scale-105 hover:shadow-lg transform"
           >
             View All Products
           </button>

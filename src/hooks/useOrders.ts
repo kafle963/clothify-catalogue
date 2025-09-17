@@ -20,13 +20,86 @@ export const useOrders = () => {
   const fetchOrders = async () => {
     if (!user) return;
 
-    // Check if Supabase is properly configured
-    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
-      console.warn('Supabase not configured, using demo orders');
-      setOrders([]);
+    // Check if we're using demo users or if Supabase is properly configured
+    // Enhanced demo user detection: check email OR if it's a generated UUID demo user
+    const isDemoUser = user.email === 'demo@clothify.com' || 
+                       user.id.startsWith('demo-user-') ||
+                       user.name === 'Demo User';
+    
+    const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
+                                 import.meta.env.VITE_SUPABASE_ANON_KEY &&
+                                 import.meta.env.VITE_SUPABASE_URL !== 'your_supabase_project_url' &&
+                                 import.meta.env.VITE_SUPABASE_URL !== 'https://demo.supabase.co';
+
+    // Use demo mode if using demo users OR if Supabase is not configured
+    if (isDemoUser || !isSupabaseConfigured) {
+      console.warn('Using demo mode for orders');
+      // Create demo orders for better UX in demo mode
+      const demoOrders: Order[] = [
+        {
+          id: 'demo-order-1',
+          items: [
+            {
+              product: {
+                id: 1,
+                name: "Elegant Summer Dress",
+                price: 89,
+                image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=500&h=600&fit=crop&crop=center",
+                category: "Women",
+                description: "",
+                sizes: ["M"],
+                inStock: true,
+              },
+              quantity: 1,
+              size: "M",
+            }
+          ],
+          total: 96.12,
+          status: 'Delivered',
+          orderDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          deliveryAddress: {
+            street: "123 Demo Street",
+            city: "Demo City",
+            state: "DC",
+            zipCode: "12345",
+            country: "United States",
+          },
+        },
+        {
+          id: 'demo-order-2',
+          items: [
+            {
+              product: {
+                id: 2,
+                name: "Classic Cotton Shirt",
+                price: 65,
+                image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&h=600&fit=crop&crop=center",
+                category: "Men",
+                description: "",
+                sizes: ["L"],
+                inStock: true,
+              },
+              quantity: 2,
+              size: "L",
+            }
+          ],
+          total: 140.40,
+          status: 'Shipped',
+          orderDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+          deliveryAddress: {
+            street: "456 Demo Avenue",
+            city: "Demo City",
+            state: "DC",
+            zipCode: "12345",
+            country: "United States",
+          },
+        }
+      ];
+      setOrders(demoOrders);
       setLoading(false);
       return;
     }
+
     try {
       setLoading(true);
       
@@ -99,9 +172,39 @@ export const useOrders = () => {
   ): Promise<string | null> => {
     if (!user) return null;
 
-    // Check if Supabase is properly configured
-    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
-      console.warn('Supabase not configured, creating demo order');
+    console.log('Creating order with user:', {
+      user_id: user.id,
+      user_email: user.email,
+      total,
+      deliveryAddress,
+      items: items.length
+    });
+
+    // Check if we're using demo users or if Supabase is properly configured
+    // Enhanced demo user detection: check email OR if it's a generated UUID demo user
+    const isDemoUser = user.email === 'demo@clothify.com' || 
+                       user.id.startsWith('demo-user-') ||
+                       user.name === 'Demo User';
+    
+    const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
+                                 import.meta.env.VITE_SUPABASE_ANON_KEY &&
+                                 import.meta.env.VITE_SUPABASE_URL !== 'your_supabase_project_url' &&
+                                 import.meta.env.VITE_SUPABASE_URL !== 'https://demo.supabase.co';
+
+    console.log('🔍 Order creation mode check:', {
+      isDemoUser,
+      isSupabaseConfigured,
+      userEmail: user.email,
+      userId: user.id,
+      userName: user.name,
+      shouldUseDemo: isDemoUser || !isSupabaseConfigured,
+      envUrl: import.meta.env.VITE_SUPABASE_URL,
+      envKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+    });
+
+    // Always use demo mode for demo users, regardless of Supabase configuration
+    if (isDemoUser) {
+      console.warn('✅ Demo user detected - using demo mode for order creation');
       const demoOrderId = 'demo-order-' + Date.now();
       
       // Create a demo order for local state
@@ -115,33 +218,71 @@ export const useOrders = () => {
       };
       
       setOrders(prev => [demoOrder, ...prev]);
+      console.log('✅ Demo order created successfully:', demoOrderId);
       return demoOrderId;
     }
+
+    // If not a demo user but Supabase is not configured, also use demo mode
+    if (!isSupabaseConfigured) {
+      console.warn('✅ Supabase not configured - using demo mode for order creation');
+      const demoOrderId = 'demo-order-' + Date.now();
+      
+      // Create a demo order for local state
+      const demoOrder: Order = {
+        id: demoOrderId,
+        items: items,
+        total: total,
+        status: 'Placed',
+        orderDate: new Date().toISOString(),
+        deliveryAddress: deliveryAddress,
+      };
+      
+      setOrders(prev => [demoOrder, ...prev]);
+      console.log('✅ Demo order created successfully:', demoOrderId);
+      return demoOrderId;
+    }
+
+    console.log('⚠️ Using Supabase mode - this may cause RLS errors with demo users');
+
     try {
+      console.log('Starting order creation process...');
+      
       // Create the order
-      const { data: orderData, error: orderError } = await supabase
+      const orderData = {
+        user_id: user.id,
+        total: total,
+        status: 'placed',
+        delivery_street: deliveryAddress.street,
+        delivery_city: deliveryAddress.city,
+        delivery_state: deliveryAddress.state,
+        delivery_zip_code: deliveryAddress.zipCode,
+        delivery_country: deliveryAddress.country,
+      };
+      
+      console.log('Inserting order data:', orderData);
+      
+      const { data: createdOrder, error: orderError } = await supabase
         .from('orders')
-        .insert({
-          user_id: user.id,
-          total: total,
-          status: 'placed',
-          delivery_street: deliveryAddress.street,
-          delivery_city: deliveryAddress.city,
-          delivery_state: deliveryAddress.state,
-          delivery_zip_code: deliveryAddress.zipCode,
-          delivery_country: deliveryAddress.country,
-        })
+        .insert(orderData)
         .select()
         .single();
 
       if (orderError) {
         console.error('Error creating order:', orderError);
+        console.error('Order error details:', orderError.message, orderError.details, orderError.hint);
         return null;
       }
+      
+      if (!createdOrder) {
+        console.error('No order data returned from insert');
+        return null;
+      }
+      
+      console.log('Order created successfully:', createdOrder);
 
       // Create order items
       const orderItems = items.map(item => ({
-        order_id: orderData.id,
+        order_id: createdOrder.id,
         product_id: item.product.id,
         product_name: item.product.name,
         product_price: item.product.price,
@@ -150,6 +291,8 @@ export const useOrders = () => {
         size: item.size,
         quantity: item.quantity,
       }));
+      
+      console.log('Inserting order items:', orderItems);
 
       const { error: itemsError } = await supabase
         .from('order_items')
@@ -157,13 +300,16 @@ export const useOrders = () => {
 
       if (itemsError) {
         console.error('Error creating order items:', itemsError);
+        console.error('Items error details:', itemsError.message, itemsError.details, itemsError.hint);
         return null;
       }
+      
+      console.log('Order items created successfully');
 
       // Refresh orders list
       await fetchOrders();
 
-      return orderData.id;
+      return createdOrder.id;
     } catch (error) {
       console.error('Error in createOrder:', error);
       return null;

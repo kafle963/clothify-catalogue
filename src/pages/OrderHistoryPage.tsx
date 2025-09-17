@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, Package, Shirt } from 'lucide-react';
 import { useOrders } from '@/hooks/useOrders';
 import Navigation from '@/components/Navigation';
 
@@ -64,14 +64,24 @@ const OrderHistoryPage = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-3xl font-bold">Order History</h1>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-accent/20 to-accent/10">
+              <Shirt className="h-6 w-6 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Order History</h1>
+              <p className="text-muted-foreground">Track your past purchases and orders</p>
+            </div>
+          </div>
+          <div className="ml-auto">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </div>
         </div>
 
         {orders.length === 0 ? (
@@ -87,13 +97,34 @@ const OrderHistoryPage = () => {
           </div>
         ) : (
           <div className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-muted-foreground">
+                You have {orders.length} order{orders.length !== 1 ? 's' : ''}
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/products')}
+                className="flex items-center gap-2"
+              >
+                <Package className="h-4 w-4" />
+                Continue Shopping
+              </Button>
+            </div>
             {orders.map((order) => (
-              <Card key={order.id} className="p-6">
+              <Card key={order.id} className="p-6 hover:shadow-lg transition-shadow duration-300">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-bold">Order #{order.id}</h3>
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Package className="h-5 w-5 text-accent" />
+                      Order #{order.id.slice(-8).toUpperCase()}
+                    </h3>
                     <p className="text-muted-foreground">
-                      Placed on {new Date(order.orderDate).toLocaleDateString()}
+                      Placed on {new Date(order.orderDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
                     </p>
                   </div>
                   <div className="text-right">
@@ -101,17 +132,21 @@ const OrderHistoryPage = () => {
                       {order.status}
                     </Badge>
                     <p className="text-lg font-bold mt-1">${order.total.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {order.items.reduce((sum, item) => sum + item.quantity, 0)} item{order.items.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
                 </div>
 
                 {/* Order Items */}
                 <div className="space-y-3 mb-4">
-                  {order.items.map((item) => (
-                    <div key={`${item.product.id}-${item.size}`} className="flex gap-3">
+                  <h4 className="font-medium text-sm text-muted-foreground mb-2">Order Items</h4>
+                  {order.items.map((item, index) => (
+                    <div key={`${item.product.id}-${item.size}-${index}`} className="flex gap-3 p-3 rounded-lg bg-muted/30">
                       <img 
                         src={item.product.image} 
                         alt={item.product.name}
-                        className="w-16 h-16 object-cover rounded cursor-pointer"
+                        className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-105 transition-transform"
                         onClick={() => navigate(`/product/${item.product.id}`)}
                       />
                       <div className="flex-1">
@@ -122,9 +157,9 @@ const OrderHistoryPage = () => {
                           {item.product.name}
                         </h4>
                         <p className="text-sm text-muted-foreground">
-                          Size: {item.size} • Quantity: {item.quantity}
+                          Size: <span className="font-medium">{item.size}</span> • Quantity: <span className="font-medium">{item.quantity}</span>
                         </p>
-                        <p className="font-medium">${(item.product.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-medium text-accent">${(item.product.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
                   ))}
@@ -134,9 +169,12 @@ const OrderHistoryPage = () => {
 
                 {/* Delivery Address */}
                 <div className="mb-4">
-                  <h4 className="font-medium mb-2">Delivery Address</h4>
-                  <div className="text-sm text-muted-foreground">
-                    <p>{order.deliveryAddress.street}</p>
+                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Delivery Address
+                  </h4>
+                  <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
+                    <p className="font-medium text-foreground">{order.deliveryAddress.street}</p>
                     <p>
                       {order.deliveryAddress.city}, {order.deliveryAddress.state} {order.deliveryAddress.zipCode}
                     </p>
@@ -145,26 +183,39 @@ const OrderHistoryPage = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => navigate(`/order-confirmation/${order.id}`)}
+                    className="flex items-center gap-2"
                   >
+                    <Package className="h-4 w-4" />
                     View Details
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      // In a real app, this would reorder the items
-                      order.items.forEach(item => {
-                        navigate(`/product/${item.product.id}`);
-                      });
+                      // Navigate to the first product in the order for reordering
+                      if (order.items.length > 0) {
+                        navigate(`/product/${order.items[0].product.id}`);
+                      }
                     }}
+                    className="flex items-center gap-2"
                   >
+                    <Shirt className="h-4 w-4" />
                     Reorder
                   </Button>
+                  {order.status === 'Placed' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                    >
+                      Track Order
+                    </Button>
+                  )}
                 </div>
               </Card>
             ))}

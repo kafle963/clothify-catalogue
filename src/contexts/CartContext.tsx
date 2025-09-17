@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem, Product, CartContextType } from '@/types';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/sonner';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -13,50 +16,178 @@ export const useCart = () => {
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Check if Supabase is properly configured
+  const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
+                               import.meta.env.VITE_SUPABASE_ANON_KEY &&
+                               import.meta.env.VITE_SUPABASE_URL !== 'your_supabase_project_url' &&
+                               import.meta.env.VITE_SUPABASE_ANON_KEY !== 'your_supabase_anon_key';
 
   useEffect(() => {
-    // Load cart from localStorage on mount
-    const storedCart = localStorage.getItem('cart');
-    if (storedCart) {
-      setItems(JSON.parse(storedCart));
+    if (user) {
+      loadCartItems();
+    } else {
+      // Load from localStorage when no user is logged in
+      const storedCart = localStorage.getItem('cart');
+      if (storedCart) {
+        try {
+          setItems(JSON.parse(storedCart));
+        } catch (error) {
+          console.error('Error parsing cart from localStorage:', error);
+          localStorage.removeItem('cart');
+        }
+      }
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    // Save cart to localStorage whenever items change
+    // Always save to localStorage as backup
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
 
-  const addItem = (product: Product, size: string, quantity: number = 1) => {
+  const loadCartItems = async () => {
+    if (!user || !isSupabaseConfigured) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading cart items:', error);
+        return;
+      }
+
+      if (data) {
+        const cartItems: CartItem[] = data.map(item => ({
+          product: {
+            id: item.product_id,
+            name: item.product_name,
+            price: item.product_price,
+            image: item.product_image,
+            category: item.product_category,
+            description: item.product_description || '',
+            sizes: item.product_sizes ? JSON.parse(item.product_sizes) : ['XS', 'S', 'M', 'L', 'XL'],
+            inStock: true,
+            reviews: [],
+            averageRating: item.product_average_rating || 4.5,
+            totalReviews: item.product_total_reviews || 0
+          } as Product,
+          size: item.size,
+          quantity: item.quantity
+        }));
+        setItems(cartItems);
+      }
+    } catch (error) {
+      console.error('Error loading cart items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const syncCartItem = async (product: Product, size: string, quantity: number, action: 'upsert' | 'delete' = 'upsert') => {
+    if (!user || !isSupabaseConfigured) {
+      return;
+    }
+
+    try {
+      if (action === 'delete') {
+        const { error } = await supabase
+          .from('cart_items')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', product.id)
+          .eq('size', size);
+
+        if (error) {
+          console.error('Error deleting cart item:', error);
+        }
+      } else {
+        const cartItemData = {
+          user_id: user.id,
+          product_id: product.id,
+          product_name: product.name,
+          product_price: product.price,
+          product_image: product.image,
+          product_category: product.category,
+          size: size,
+          quantity: quantity
+        };
+
+        const { error } = await supabase
+          .from('cart_items')
+          .upsert(cartItemData, {
+            onConflict: 'user_id,product_id,size',
+            ignoreDuplicates: false
+          });
+
+        if (error) {
+          console.error('Error syncing cart item:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing cart item:', error);
+    }
+  };
+
+  const addItem = async (product: Product, size: string, quantity: number = 1) => {
     setItems(prevItems => {
       const existingItemIndex = prevItems.findIndex(
         item => item.product.id === product.id && item.size === size
       );
 
+      let updatedItems;
       if (existingItemIndex >= 0) {
         // Update quantity of existing item
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex].quantity += quantity;
-        return updatedItems;
+        updatedItems = [...prevItems];
+        const newQuantity = updatedItems[existingItemIndex].quantity + quantity;
+        updatedItems[existingItemIndex].quantity = newQuantity;
+        
+        // Sync with Supabase
+        syncCartItem(product, size, newQuantity);
       } else {
         // Add new item
-        return [...prevItems, { product, size, quantity }];
+        updatedItems = [...prevItems, { product, size, quantity }];
+        
+        // Sync with Supabase
+        syncCartItem(product, size, quantity);
       }
+      
+      return updatedItems;
     });
+
+    toast.success(`${product.name} added to cart!`);
   };
 
-  const removeItem = (productId: number, size: string) => {
+  const removeItem = async (productId: number, size: string) => {
+    const itemToRemove = items.find(item => item.product.id === productId && item.size === size);
+    
     setItems(prevItems =>
       prevItems.filter(item => !(item.product.id === productId && item.size === size))
     );
+
+    // Sync with Supabase
+    if (itemToRemove) {
+      syncCartItem(itemToRemove.product, size, 0, 'delete');
+      toast.success(`${itemToRemove.product.name} removed from cart!`);
+    }
   };
 
-  const updateQuantity = (productId: number, size: string, quantity: number) => {
+  const updateQuantity = async (productId: number, size: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(productId, size);
       return;
     }
 
+    const product = items.find(item => item.product.id === productId && item.size === size)?.product;
+    
     setItems(prevItems =>
       prevItems.map(item =>
         item.product.id === productId && item.size === size
@@ -64,10 +195,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : item
       )
     );
+
+    // Sync with Supabase
+    if (product) {
+      syncCartItem(product, size, quantity);
+    }
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
     setItems([]);
+    
+    // Clear from Supabase
+    if (user && isSupabaseConfigured) {
+      try {
+        const { error } = await supabase
+          .from('cart_items')
+          .delete()
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('Error clearing cart:', error);
+        }
+      } catch (error) {
+        console.error('Error clearing cart:', error);
+      }
+    }
+
+    toast.success('Cart cleared!');
   };
 
   const total = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
@@ -81,7 +235,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateQuantity,
       clearCart,
       total,
-      itemCount
+      itemCount,
+      isLoading
     }}>
       {children}
     </CartContext.Provider>

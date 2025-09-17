@@ -79,3 +79,29 @@ export interface CartContextType {
   itemCount: number;
   isLoading?: boolean;
 }
+
+export interface AIMessage {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
+  isLoading?: boolean;
+}
+
+export interface AIContextType {
+  messages: AIMessage[];
+  isLoading: boolean;
+  isOpen: boolean;
+  sendMessage: (content: string) => Promise<void>;
+  clearConversation: () => void;
+  toggleChat: () => void;
+  closeChat: () => void;
+}
+
+export interface AIConfig {
+  apiUrl?: string;
+  apiKey?: string;
+  model?: string;
+  maxTokens?: number;
+  temperature?: number;
+}

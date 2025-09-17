@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  account_type?: 'customer' | 'vendor';
   address?: {
     street: string;
     city: string;
@@ -64,7 +65,7 @@ export interface Order {
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  signup: (email: string, password: string, name: string) => Promise<boolean>;
+  signup: (email: string, password: string, name: string, accountType?: 'customer' | 'vendor') => Promise<boolean>;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => void;
 }
@@ -104,4 +105,61 @@ export interface AIConfig {
   model?: string;
   maxTokens?: number;
   temperature?: number;
+}
+
+// Vendor-related types
+export interface Vendor {
+  id: string;
+  email: string;
+  name: string;
+  businessName: string;
+  description?: string;
+  phone?: string;
+  profileImage?: string;
+  website?: string;
+  taxId?: string;
+  socialMedia?: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  isApproved: boolean;
+  joinedDate: string;
+}
+
+export interface VendorProduct extends Omit<Product, 'id'> {
+  id?: number;
+  vendorId: string;
+  status: 'draft' | 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VendorAuthContextType {
+  vendor: Vendor | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (data: VendorSignupData) => Promise<boolean>;
+  logout: () => void;
+  updateProfile: (updates: Partial<Vendor>) => void;
+}
+
+export interface VendorSignupData {
+  email: string;
+  password: string;
+  name: string;
+  businessName: string;
+  description?: string;
+  phone?: string;
+}
+
+export interface VendorStats {
+  totalProducts: number;
+  activeProducts: number;
+  pendingProducts: number;
+  totalSales: number;
+  monthlyRevenue: number;
+  totalOrders: number;
 }

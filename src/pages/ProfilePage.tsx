@@ -9,8 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, User, MapPin, Save, Bug } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-import SupabaseDebug from '@/components/SupabaseDebug';
 import Navigation from '@/components/Navigation';
+import AccountTypeDisplay from '@/components/AccountTypeDisplay';
 
 const ProfilePage = () => {
   const { user, updateProfile, logout } = useAuth();
@@ -87,14 +87,10 @@ const ProfilePage = () => {
 
         <div className="max-w-2xl mx-auto space-y-6">
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-1">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
-              </TabsTrigger>
-              <TabsTrigger value="debug" className="flex items-center gap-2">
-                <Bug className="h-4 w-4" />
-                Debug
               </TabsTrigger>
             </TabsList>
             
@@ -272,10 +268,6 @@ const ProfilePage = () => {
                   Logout
                 </Button>
               </Card>
-            </TabsContent>
-            
-            <TabsContent value="debug" className="space-y-6">
-              <SupabaseDebug />
             </TabsContent>
           </Tabs>
         </div>

@@ -9,6 +9,7 @@ import { useCart } from '@/contexts/CartContext';
 import { toast } from '@/components/ui/sonner';
 import Navigation from '@/components/Navigation';
 import { Product } from '@/types';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 
 const FavoritesPage = () => {
   const navigate = useNavigate();
@@ -16,13 +17,7 @@ const FavoritesPage = () => {
   const { addItem } = useCart();
 
   // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'smooth'
-    });
-  }, []);
+  useScrollToTop([]);
 
   const handleAddToCart = (product: Product) => {
     const defaultSize = product.sizes[0];

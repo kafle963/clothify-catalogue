@@ -13,6 +13,7 @@ import Navigation from '@/components/Navigation';
 import StarRating from '@/components/StarRating';
 import ReviewCard from '@/components/ReviewCard';
 import ReviewSummary from '@/components/ReviewSummary';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -28,13 +29,7 @@ const ProductDetailPage = () => {
   const isWishlisted = product ? isInWishlist(product.id) : false;
 
   // Scroll to top when component mounts or product changes
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'smooth'
-    });
-  }, [id]); // Re-run when product ID changes
+  useScrollToTop([id]);
 
   if (!product) {
     return (

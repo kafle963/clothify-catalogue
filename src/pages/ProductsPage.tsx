@@ -14,6 +14,7 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import { toast } from '@/components/ui/sonner';
 import Navigation from '@/components/Navigation';
 import StarRating from '@/components/StarRating';
+import { useScrollToTopOnRouteChange } from '@/hooks/useScrollToTop';
 import {
   Collapsible,
   CollapsibleContent,
@@ -26,6 +27,8 @@ const ProductsPage = () => {
   const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   
+  // Auto scroll to top on route changes
+  useScrollToTopOnRouteChange();
 
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -41,13 +44,6 @@ const ProductsPage = () => {
     const search = searchParams.get('search');
     if (category) setSelectedCategory(category);
     if (search) setSearchQuery(search);
-    
-    // Scroll to top when page loads or search params change
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'smooth'
-    });
   }, [searchParams]);
 
   const filteredProducts = useMemo(() => {

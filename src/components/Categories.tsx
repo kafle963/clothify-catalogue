@@ -6,28 +6,28 @@ const categories = [
     name: "Women",
     description: "Elegant & Chic",
     count: "120+ items",
-    gradient: "from-fashion-rose to-fashion-gold",
+    gradient: "from-slate-500 to-slate-400",
   },
   {
     id: 2,
     name: "Men",
     description: "Modern & Classic",
     count: "85+ items", 
-    gradient: "from-fashion-charcoal to-fashion-sage",
+    gradient: "from-slate-400 to-slate-500",
   },
   {
     id: 3,
     name: "Kids",
     description: "Fun & Comfortable",
     count: "65+ items",
-    gradient: "from-accent to-fashion-rose",
+    gradient: "from-accent to-slate-400",
   },
   {
     id: 4,
     name: "Accessories",
     description: "Complete Your Look",
     count: "45+ items",
-    gradient: "from-fashion-sage to-fashion-gold",
+    gradient: "from-fashion-sage to-slate-300",
   },
 ];
 

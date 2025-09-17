@@ -32,6 +32,7 @@ export type Database = {
           id: string
           email: string
           name: string
+          account_type: 'customer' | 'vendor'
           street: string | null
           city: string | null
           state: string | null
@@ -44,6 +45,7 @@ export type Database = {
           id: string
           email: string
           name: string
+          account_type?: 'customer' | 'vendor'
           street?: string | null
           city?: string | null
           state?: string | null
@@ -56,11 +58,83 @@ export type Database = {
           id?: string
           email?: string
           name?: string
+          account_type?: 'customer' | 'vendor'
           street?: string | null
           city?: string | null
           state?: string | null
           zip_code?: string | null
           country?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      vendors: {
+        Row: {
+          id: string
+          user_id: string | null
+          email: string
+          name: string
+          business_name: string
+          description: string | null
+          phone: string | null
+          profile_image: string | null
+          website: string | null
+          tax_id: string | null
+          social_media: string | null
+          address_street: string | null
+          address_city: string | null
+          address_state: string | null
+          address_zip_code: string | null
+          address_country: string | null
+          is_approved: boolean
+          approval_date: string | null
+          rejected_reason: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          email: string
+          name: string
+          business_name: string
+          description?: string | null
+          phone?: string | null
+          profile_image?: string | null
+          website?: string | null
+          tax_id?: string | null
+          social_media?: string | null
+          address_street?: string | null
+          address_city?: string | null
+          address_state?: string | null
+          address_zip_code?: string | null
+          address_country?: string | null
+          is_approved?: boolean
+          approval_date?: string | null
+          rejected_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          email?: string
+          name?: string
+          business_name?: string
+          description?: string | null
+          phone?: string | null
+          profile_image?: string | null
+          website?: string | null
+          tax_id?: string | null
+          social_media?: string | null
+          address_street?: string | null
+          address_city?: string | null
+          address_state?: string | null
+          address_zip_code?: string | null
+          address_country?: string | null
+          is_approved?: boolean
+          approval_date?: string | null
+          rejected_reason?: string | null
           created_at?: string
           updated_at?: string
         }

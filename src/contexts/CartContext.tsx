@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { CartItem, Product, CartContextType } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,7 +14,11 @@ export const useCart = () => {
   return context;
 };
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+type CartProviderProps = {
+  children: ReactNode;
+}
+
+export const CartProvider = ({ children }: CartProviderProps) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -137,7 +141,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const addItem = async (product: Product, size: string, quantity: number = 1) => {
+  // Memoize expensive operations
+  const addItem = useCallback(async (product: Product, size: string, quantity: number = 1) => {
     setItems(prevItems => {
       const existingItemIndex = prevItems.findIndex(
         item => item.product.id === product.id && item.size === size
@@ -164,9 +169,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     toast.success(`${product.name} added to cart!`);
-  };
+  }, [items, user, isSupabaseConfigured]);
 
-  const removeItem = async (productId: number, size: string) => {
+  const removeItem = useCallback(async (productId: number, size: string) => {
     const itemToRemove = items.find(item => item.product.id === productId && item.size === size);
     
     setItems(prevItems =>
@@ -178,9 +183,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       syncCartItem(itemToRemove.product, size, 0, 'delete');
       toast.success(`${itemToRemove.product.name} removed from cart!`);
     }
-  };
+  }, [items, user, isSupabaseConfigured]);
 
-  const updateQuantity = async (productId: number, size: string, quantity: number) => {
+  const updateQuantity = useCallback(async (productId: number, size: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(productId, size);
       return;
@@ -200,9 +205,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (product) {
       syncCartItem(product, size, quantity);
     }
-  };
+  }, [items]);
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     setItems([]);
     
     // Clear from Supabase
@@ -222,22 +227,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     toast.success('Cart cleared!');
-  };
+  }, [user, isSupabaseConfigured]);
 
-  const total = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  // Memoize computed values
+  const total = useMemo(() => 
+    items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0), 
+    [items]
+  );
+  
+  const itemCount = useMemo(() => 
+    items.reduce((sum, item) => sum + item.quantity, 0), 
+    [items]
+  );
+
+  // Memoize context value
+  const contextValue = useMemo(() => ({
+    items,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    total,
+    itemCount,
+    isLoading
+  }), [items, addItem, removeItem, updateQuantity, clearCart, total, itemCount, isLoading]);
 
   return (
-    <CartContext.Provider value={{
-      items,
-      addItem,
-      removeItem,
-      updateQuantity,
-      clearCart,
-      total,
-      itemCount,
-      isLoading
-    }}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

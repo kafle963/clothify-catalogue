@@ -6,19 +6,59 @@
     <title>Clothify - Premium Fashion & Style</title>
     <meta name="description" content="Discover premium clothing and accessories for modern lifestyle. Shop the latest fashion trends with Clothify's curated collection." />
     <meta name="author" content="Lovable" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="keywords" content="fashion, clothing, apparel, premium, modern, style, trends, men, women, kids, accessories" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    
+    <!-- DNS prefetch for better performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//images.unsplash.com" />
 
-    <meta property="og:title" content="clothify-catalogue" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <meta property="og:title" content="Clothify - Premium Fashion & Style" />
+    <meta property="og:description" content="Discover premium clothing and accessories for modern lifestyle. Shop the latest fashion trends with Clothify's curated collection." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:image" content="/icon-512.png" />
+    <meta property="og:url" content="https://clothify.example.com" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:title" content="Clothify - Premium Fashion & Style" />
+    <meta name="twitter:description" content="Discover premium clothing and accessories for modern lifestyle. Shop the latest fashion trends with Clothify's curated collection." />
+    <meta name="twitter:image" content="/icon-512.png" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        window.addEventListener('load', async () => {
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('SW registered: ', registration);
+            
+            // Update available
+            registration.addEventListener('updatefound', () => {
+              console.log('SW update found');
+            });
+            
+          } catch (registrationError) {
+            console.log('SW registration failed: ', registrationError);
+          }
+        });
+      }
+    </script>
   </body>
 </html>

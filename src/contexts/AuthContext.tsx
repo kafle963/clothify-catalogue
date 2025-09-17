@@ -3,6 +3,7 @@ import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { User, AuthContextType } from '@/types';
 
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Custom hook for using auth context
@@ -22,8 +23,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Initialize authentication with timeout protection
     const initializeAuth = async () => {
-      console.log('🚀 AuthProvider initializing...');
-      
       // Check if Supabase is properly configured
       const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
                                    import.meta.env.VITE_SUPABASE_ANON_KEY &&
@@ -31,7 +30,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                                    import.meta.env.VITE_SUPABASE_ANON_KEY !== 'your_supabase_anon_key';
       
       if (!isSupabaseConfigured) {
-        console.warn('⚠️ Supabase not configured, using demo mode');
         createDemoUser();
         return;
       }
@@ -45,14 +43,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         
         const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
         
-        console.log('📊 Session retrieved:', { hasSession: !!session, userId: session?.user?.id });
-        
         if (session?.user) {
           // Add timeout protection for profile fetching
           const profilePromise = fetchUserProfile(session.user);
           const profileTimeout = new Promise((resolve) => 
             setTimeout(() => {
-              console.warn('⚠️ Profile fetch timeout, using fallback');
               createFallbackUser(session.user);
               resolve(null);
             }, 8000)
@@ -61,15 +56,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           await Promise.race([profilePromise, profileTimeout]);
         } else {
           // No session found, create demo user for immediate functionality
-          console.log('💫 No session found, creating demo user for functionality');
           createDemoUser();
         }
       } catch (error) {
-        console.error('❌ Error in session initialization:', error);
-        console.log('🔄 Falling back to demo mode for immediate functionality');
+        console.error('Error in session initialization:', error);
+        console.log('Falling back to demo mode for immediate functionality');
         createDemoUser();
       } finally {
-        console.log('✅ Setting loading to false');
+        console.log('Setting loading to false');
         setLoading(false);
       }
     };
@@ -86,28 +80,30 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       const demoUser: User = {
         id: generateUUID(),
         email: 'demo@clothify.com',
-        name: 'Demo User'
+        name: 'Demo User',
+        account_type: 'customer'
       };
       
       setUser(demoUser);
-      console.log('✅ Demo user created:', demoUser.id);
+      console.log('Demo user created:', demoUser.id);
     };
 
     const createFallbackUser = (supabaseUser: SupabaseUser) => {
       const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
-        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+        account_type: (supabaseUser.user_metadata?.account_type as 'customer' | 'vendor') || 'customer'
       };
       setUser(fallbackUser);
-      console.log('✅ Fallback user created:', fallbackUser.id);
+      console.log('Fallback user created:', fallbackUser.id);
     };
 
     initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state change:', event, !!session);
+      console.log('Auth state change:', event, !!session);
       
       if (event === 'SIGNED_IN' && session?.user) {
         try {
@@ -115,7 +111,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           const profilePromise = fetchUserProfile(session.user);
           const timeoutPromise = new Promise((resolve) => 
             setTimeout(() => {
-              console.warn('⚠️ Profile fetch timeout on auth change, using fallback');
+              console.warn('Profile fetch timeout on auth change, using fallback');
               createFallbackUser(session.user);
               resolve(null);
             }, 8000)
@@ -123,7 +119,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           
           await Promise.race([profilePromise, timeoutPromise]);
         } catch (error) {
-          console.error('❌ Error on auth change:', error);
+          console.error('Error on auth change:', error);
           createFallbackUser(session.user);
         }
       } else if (event === 'SIGNED_OUT') {
@@ -136,22 +132,23 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
-    console.log('🔄 Starting fetchUserProfile for user:', supabaseUser.id);
-    console.log('📧 User email:', supabaseUser.email);
+    console.log('Starting fetchUserProfile for user:', supabaseUser.id);
+    console.log('User email:', supabaseUser.email);
     
     try {
-      console.log('🔍 Attempting to fetch profile from Supabase...');
+      console.log('Attempting to fetch profile from Supabase...');
       
       // First, create a fallback user immediately to ensure functionality
       const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
-        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+        account_type: (supabaseUser.user_metadata?.account_type as 'customer' | 'vendor') || 'customer'
       };
       
       // Set fallback user immediately to prevent hanging
       setUser(fallbackUser);
-      console.log('🔄 Fallback user set, attempting profile fetch...');
+      console.log('Fallback user set, attempting profile fetch...');
       
       let profile = null;
       
@@ -177,7 +174,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error && error.code === 'PGRST116') {
         // Profile not found, try to create one
-        console.log('🔨 Profile not found, attempting to create new profile...');
+        console.log('Profile not found, attempting to create new profile...');
         
         const newProfileData = {
           id: supabaseUser.id,
@@ -199,21 +196,21 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           const { data: newProfile, error: createError } = await Promise.race([createQuery, createTimeout]) as any;
           
           if (createError) {
-            console.error('❌ Error creating profile:', createError);
-            console.log('🔄 Keeping fallback user due to create error');
+            console.error('Error creating profile:', createError);
+            console.log('Keeping fallback user due to create error');
             return;
           }
           
-          console.log('✅ Profile created successfully:', newProfile);
+          console.log('Profile created successfully:', newProfile);
           profile = newProfile;
         } catch (createError) {
-          console.error('❌ Profile creation failed:', createError);
-          console.log('🔄 Keeping fallback user due to creation failure');
+          console.error('Profile creation failed:', createError);
+          console.log('Keeping fallback user due to creation failure');
           return;
         }
       } else if (error) {
-        console.error('❌ Error fetching profile:', error);
-        console.log('🔄 Keeping fallback user due to fetch error');
+        console.error('Error fetching profile:', error);
+        console.log('Keeping fallback user due to fetch error');
         return;
       } else {
         profile = profileData;
@@ -225,6 +222,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           id: profile.id,
           email: profile.email,
           name: profile.name,
+          account_type: profile.account_type,
           address: profile.street ? {
             street: profile.street,
             city: profile.city || '',
@@ -233,28 +231,29 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             country: profile.country || 'United States',
           } : undefined,
         };
-        console.log('✅ Enhanced user data assembled:', userData);
+        console.log('Enhanced user data assembled:', userData);
+
         setUser(userData);
       }
     } catch (error: any) {
-      console.error('💥 Unexpected error in fetchUserProfile:', error);
-      console.log('🔄 Fallback user should already be set');
+      console.error('Unexpected error in fetchUserProfile:', error);
+      console.log('Fallback user should already be set');
       
       // Double-check that user is set
       if (!user) {
         const emergencyFallback: User = {
           id: supabaseUser.id,
           email: supabaseUser.email || '',
-          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User'
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+          account_type: (supabaseUser.user_metadata?.account_type as 'customer' | 'vendor') || 'customer'
         };
         setUser(emergencyFallback);
-        console.log('🆘 Emergency fallback user created');
+        console.log('Emergency fallback user created');
       }
     }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    console.log('Login attempt for:', email);
     
     // Check if Supabase is properly configured
     const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
@@ -263,7 +262,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                                  import.meta.env.VITE_SUPABASE_ANON_KEY !== 'your_supabase_anon_key';
     
     if (!isSupabaseConfigured) {
-      console.warn('Supabase not configured, using demo login');
       const generateUUID = () => {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           const r = Math.random() * 16 | 0;
@@ -275,15 +273,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       const demoUser: User = {
         id: generateUUID(),
         email: email,
-        name: email.split('@')[0]
+        name: email.split('@')[0],
+        account_type: 'customer'
       };
       setUser(demoUser);
-      console.log('✅ Demo login successful');
       return true;
     }
 
     try {
-      console.log('Attempting Supabase login...');
       
       // Add timeout protection for login
       const loginPromise = supabase.auth.signInWithPassword({
@@ -303,13 +300,13 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.user) {
-        console.log('✅ Supabase login successful, setting up user...');
         
         // Create immediate fallback user for functionality
         const immediateUser: User = {
           id: data.user.id,
           email: data.user.email || email,
-          name: data.user.user_metadata?.name || email.split('@')[0]
+          name: data.user.user_metadata?.name || email.split('@')[0],
+          account_type: (data.user.user_metadata?.account_type as 'customer' | 'vendor') || 'customer'
         };
         setUser(immediateUser);
         
@@ -317,7 +314,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           await fetchUserProfile(data.user);
         } catch (profileError) {
-          console.warn('⚠️ Profile fetch failed during login, keeping basic user');
         }
         
         return true;
@@ -330,8 +326,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signup = async (email: string, password: string, name: string): Promise<boolean> => {
-    console.log('Signup attempt for:', email);
+  const signup = async (email: string, password: string, name: string, accountType: 'customer' | 'vendor' = 'customer'): Promise<boolean> => {
     
     // Check if Supabase is properly configured
     const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
@@ -340,7 +335,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                                  import.meta.env.VITE_SUPABASE_ANON_KEY !== 'your_supabase_anon_key';
     
     if (!isSupabaseConfigured) {
-      console.warn('Supabase not configured, using demo signup');
       const generateUUID = () => {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           const r = Math.random() * 16 | 0;
@@ -352,15 +346,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       const demoUser: User = {
         id: generateUUID(),
         email: email,
-        name: name
+        name: name,
+        account_type: accountType
       };
       setUser(demoUser);
-      console.log('✅ Demo signup successful');
       return true;
     }
 
     try {
-      console.log('Starting Supabase signup process...');
       
       // Add timeout protection for signup
       const signupPromise = supabase.auth.signUp({
@@ -369,6 +362,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         options: {
           data: {
             name: name,
+            account_type: accountType
           },
         },
       });
@@ -384,20 +378,19 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      console.log('Signup successful:', data);
+
       
       if (data.user) {
         // Create immediate user for functionality
         const immediateUser: User = {
           id: data.user.id,
           email: data.user.email || email,
-          name: name
+          name: name,
+          account_type: accountType
         };
         setUser(immediateUser);
-        console.log('✅ Immediate user set after signup');
         
         if (!data.session) {
-          console.log('User created but needs email confirmation');
           return true; // Still successful, user can use the app
         }
         
@@ -405,7 +398,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           await fetchUserProfile(data.user);
         } catch (profileError) {
-          console.warn('⚠️ Profile setup failed during signup, keeping basic user');
         }
         
         return true;
@@ -421,10 +413,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'your_supabase_project_url') {
-        console.log('Signing out from Supabase...');
         await supabase.auth.signOut();
       }
-      console.log('Logout called - clearing user state');
       setUser(null);
       localStorage.removeItem('cart');
     } catch (error) {
@@ -438,7 +428,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
 
     if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
-      console.warn('Supabase not configured, updating local user only');
       const updatedUser: User = {
         ...user,
         ...updates,
@@ -486,15 +475,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (loading) {
-    console.log('🔄 AuthContext is still loading...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     );
   }
-
-  console.log('✅ AuthContext loaded, rendering children with user:', user?.id);
   return (
     <AuthContext.Provider value={{ user, login, signup, logout, updateProfile }}>
       {children}

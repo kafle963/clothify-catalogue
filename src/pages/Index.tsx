@@ -1,9 +1,31 @@
+import React, { useState } from 'react';
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import Categories from "@/components/Categories";
 import ProductGrid from "@/components/ProductGrid";
+import { toast } from "@/components/ui/sonner";
 
 const Index = () => {
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    
+    setIsSubscribing(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      toast.success('Thank you for subscribing! Welcome to Clothify!');
+      setEmail('');
+      setIsSubscribing(false);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -21,16 +43,23 @@ const Index = () => {
             <p className="text-white/90 text-lg mb-8">
               Subscribe to our newsletter and be the first to know about new collections, exclusive offers, and fashion trends.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 px-4 py-3 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300 hover:bg-white/15"
+                required
               />
-              <button className="bg-accent hover:bg-accent/90 text-accent-foreground px-6 py-3 rounded-md font-medium transition-all duration-300 shadow-button whitespace-nowrap hover:scale-105 hover:shadow-lg transform">
-                Subscribe
+              <button 
+                type="submit"
+                disabled={isSubscribing}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground px-6 py-3 rounded-md font-medium transition-all duration-300 shadow-button whitespace-nowrap hover:scale-105 hover:shadow-lg transform disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isSubscribing ? 'Subscribing...' : 'Subscribe'}
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </section>

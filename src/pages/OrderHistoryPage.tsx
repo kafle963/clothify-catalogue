@@ -48,13 +48,13 @@ const OrderHistoryPage = () => {
       case 'Placed':
         return 'bg-blue-100 text-blue-800';
       case 'Processing':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-slate-100 text-slate-700';
       case 'Shipped':
         return 'bg-purple-100 text-purple-800';
       case 'Delivered':
         return 'bg-green-100 text-green-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-100 text-slate-700';
     }
   };
 
@@ -211,7 +211,7 @@ const OrderHistoryPage = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                      className="text-slate-600 border-slate-600 hover:bg-slate-50"
                     >
                       Track Order
                     </Button>

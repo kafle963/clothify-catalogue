@@ -27,7 +27,7 @@ All colors MUST be HSL.
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 14 83% 63%;
+    --accent: 0 0% 25%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 72% 51%;
@@ -41,20 +41,20 @@ All colors MUST be HSL.
 
     /* Fashion-specific design tokens */
     --fashion-gold: 35 78% 65%;
-    --fashion-rose: 14 83% 63%;
-    --fashion-charcoal: 0 0% 15%;
+    --fashion-rose: 0 0% 40%;
+    --fashion-charcoal: 0 0% 20%;
     --fashion-cream: 30 54% 96%;
-    --fashion-sage: 120 13% 50%;
+    --fashion-sage: 210 15% 60%;
     
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--fashion-charcoal)), hsl(0 0% 25%));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--fashion-gold)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--fashion-charcoal)), hsl(0 0% 35%));
+    --gradient-accent: linear-gradient(135deg, hsl(0 0% 25%), hsl(0 0% 45%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
     
     /* Shadows */
-    --shadow-elegant: 0 4px 20px -4px hsl(0 0% 0% / 0.1);
-    --shadow-card: 0 2px 10px -2px hsl(0 0% 0% / 0.05);
-    --shadow-button: 0 2px 8px -2px hsl(var(--accent) / 0.2);
+    --shadow-elegant: 0 4px 20px -4px hsl(0 0% 0% / 0.15);
+    --shadow-card: 0 2px 10px -2px hsl(0 0% 0% / 0.08);
+    --shadow-button: 0 2px 8px -2px hsl(0 0% 0% / 0.2);
     
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

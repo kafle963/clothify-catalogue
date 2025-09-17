@@ -53,7 +53,7 @@ const heroSlides = [
     ctaText: "Shop Accessories",
     ctaLink: "/products?category=Accessories",
     badge: "Trending",
-    gradient: "from-amber-600/90 via-orange-600/80 to-red-600/90"
+    gradient: "from-slate-600/90 via-gray-700/80 to-slate-500/90"
   }
 ];
 
@@ -176,7 +176,7 @@ const Hero = () => {
                     <div className="flex items-center justify-center gap-2 animate-fade-in-up" style={{ animationDelay: `${index * 200 + 400}ms` }}>
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
+                          <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-slate-600 text-slate-600" />
                         ))}
                       </div>
                       <span className="text-sm sm:text-base opacity-90">4.8/5 from 2,500+ reviews</span>

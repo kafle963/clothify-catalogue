@@ -59,9 +59,9 @@ const StarRating: React.FC<StarRatingProps> = ({
                 className={cn(
                   sizeClasses[size],
                   isFilled 
-                    ? "fill-yellow-400 text-yellow-400" 
+                    ? "fill-slate-600 text-slate-600"
                     : "fill-gray-200 text-gray-200",
-                  interactive && "hover:fill-yellow-300 hover:text-yellow-300"
+                  interactive && "hover:fill-slate-500 hover:text-slate-500"
                 )}
               />
               {isHalfFilled && (
@@ -69,7 +69,7 @@ const StarRating: React.FC<StarRatingProps> = ({
                   <Star 
                     className={cn(
                       sizeClasses[size],
-                      "fill-yellow-400 text-yellow-400"
+                      "fill-slate-600 text-slate-600"
                     )}
                   />
                 </div>

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingBag, Search, User, Menu, LogOut, Shirt, Heart } from "lucide-react";
+import { ShoppingBag, Search, User, Menu, LogOut, Shirt, Heart, Store } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -166,6 +166,14 @@ const Navigation = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/orders')}>
                     Order History
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    navigate('/vendor/login');
+                  }}>
+                    <Store className="h-4 w-4 mr-2" />
+                    Vendor Portal
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>

@@ -32,16 +32,8 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setIsLoading(true);
       
       if (!isSupabaseConfigured) {
-        // Fallback to localStorage for demo mode
-        const savedVendor = localStorage.getItem('vendor');
-        if (savedVendor) {
-          try {
-            setVendor(JSON.parse(savedVendor));
-          } catch (error) {
-            console.error('Error parsing saved vendor data:', error);
-            localStorage.removeItem('vendor');
-          }
-        }
+        console.error('Supabase is not properly configured for vendor authentication.');
+        setVendor(null);
         return;
       }
 
@@ -100,31 +92,8 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       if (!isSupabaseConfigured) {
 
-        // Demo mode - simulate login
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const mockVendor: Vendor = {
-          id: '1',
-          email,
-          name: 'John Doe',
-          businessName: 'Fashion Hub',
-          description: 'Premium clothing retailer',
-          phone: '+1-555-0123',
-          isApproved: true,
-          joinedDate: '2024-01-15',
-          address: {
-            street: '123 Business St',
-            city: 'New York',
-            state: 'NY',
-            zipCode: '10001',
-            country: 'USA'
-          }
-        };
-
-        setVendor(mockVendor);
-        localStorage.setItem('vendor', JSON.stringify(mockVendor));
-        toast.success('Successfully logged in!');
-        return true;
+        console.error('Supabase is not properly configured for vendor authentication.');
+        return false;
       }
 
       // Supabase authentication
@@ -189,25 +158,8 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const signup = async (data: VendorSignupData): Promise<boolean> => {
     try {
       if (!isSupabaseConfigured) {
-
-        // Demo mode - simulate signup
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        const newVendor: Vendor = {
-          id: Date.now().toString(),
-          email: data.email,
-          name: data.name,
-          businessName: data.businessName,
-          description: data.description,
-          phone: data.phone,
-          isApproved: false,
-          joinedDate: new Date().toISOString().split('T')[0]
-        };
-
-        setVendor(newVendor);
-        localStorage.setItem('vendor', JSON.stringify(newVendor));
-        toast.success('Account created successfully! Your account is pending approval.');
-        return true;
+        console.error('Supabase is not properly configured for vendor authentication.');
+        return false;
       }
 
       // Supabase signup
@@ -292,11 +244,7 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     
     try {
       if (!isSupabaseConfigured) {
-        // Demo mode - update localStorage
-        const updatedVendor = { ...vendor, ...updates };
-        setVendor(updatedVendor);
-        localStorage.setItem('vendor', JSON.stringify(updatedVendor));
-        toast.success('Profile updated successfully');
+        console.error('Supabase is not properly configured. Cannot update vendor profile.');
         return;
       }
 

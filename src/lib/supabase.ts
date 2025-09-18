@@ -4,24 +4,18 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase environment variables not configured. Using demo mode.')
-  console.warn('To enable full functionality, please set up Supabase:')
-  console.warn('1. Create a Supabase project at https://supabase.com')
-  console.warn('2. Copy your project URL and anon key to the .env file')
-  console.warn('3. Run the database migrations')
+  throw new Error(
+    'Supabase environment variables are required. Please set up your .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY'
+  )
 }
 
-export const supabase = createClient(
-  supabaseUrl || 'https://demo.supabase.co',
-  supabaseAnonKey || 'demo-key',
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
-    }
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
   }
-)
+})
 
 // Types for our database
 export type Database = {
@@ -135,6 +129,74 @@ export type Database = {
           is_approved?: boolean
           approval_date?: string | null
           rejected_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      vendor_products: {
+        Row: {
+          id: string
+          vendor_id: string
+          name: string
+          description: string
+          price: number
+          original_price: number | null
+          category: string
+          images: any
+          sizes: any
+          colors: any | null
+          inventory: any
+          status: 'draft' | 'pending' | 'approved' | 'rejected'
+          approval_date: string | null
+          rejected_reason: string | null
+          tags: any | null
+          is_active: boolean
+          views: number
+          sales_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          vendor_id: string
+          name: string
+          description: string
+          price: number
+          original_price?: number | null
+          category: string
+          images?: any
+          sizes?: any
+          colors?: any | null
+          inventory?: any
+          status?: 'draft' | 'pending' | 'approved' | 'rejected'
+          approval_date?: string | null
+          rejected_reason?: string | null
+          tags?: any | null
+          is_active?: boolean
+          views?: number
+          sales_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          vendor_id?: string
+          name?: string
+          description?: string
+          price?: number
+          original_price?: number | null
+          category?: string
+          images?: any
+          sizes?: any
+          colors?: any | null
+          inventory?: any
+          status?: 'draft' | 'pending' | 'approved' | 'rejected'
+          approval_date?: string | null
+          rejected_reason?: string | null
+          tags?: any | null
+          is_active?: boolean
+          views?: number
+          sales_count?: number
           created_at?: string
           updated_at?: string
         }
@@ -289,6 +351,41 @@ export type Database = {
           product_image?: string
           product_category?: string
           created_at?: string
+        }
+      }
+      admin: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          role: 'super_admin' | 'admin' | 'moderator'
+          permissions: any
+          is_active: boolean
+          last_login: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          role?: 'super_admin' | 'admin' | 'moderator'
+          permissions?: any
+          is_active?: boolean
+          last_login?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          role?: 'super_admin' | 'admin' | 'moderator'
+          permissions?: any
+          is_active?: boolean
+          last_login?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
     }

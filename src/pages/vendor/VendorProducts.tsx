@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Package, 
@@ -14,59 +14,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useVendorAuth } from '@/contexts/VendorAuthContext';
+import { useVendorProducts } from '@/contexts/VendorProductsContext';
 
 const VendorProducts = () => {
   const { vendor } = useVendorAuth();
+  const { products, isLoading, deleteProduct } = useVendorProducts();
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Mock products data - replace with actual API calls
-  const products = [
-    {
-      id: 1,
-      name: "Summer Floral Dress",
-      price: 89.99,
-      originalPrice: 129.99,
-      category: "Women",
-      status: "approved",
-      sales: 15,
-      views: 340,
-      image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=100&h=100&fit=crop",
-      createdAt: "2024-01-15"
-    },
-    {
-      id: 2,
-      name: "Classic Denim Jacket",
-      price: 129.99,
-      category: "Unisex",
-      status: "pending",
-      sales: 0,
-      views: 45,
-      image: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=100&h=100&fit=crop",
-      createdAt: "2024-01-20"
-    },
-    {
-      id: 3,
-      name: "Leather Handbag",
-      price: 199.99,
-      category: "Accessories",
-      status: "approved",
-      sales: 8,
-      views: 180,
-      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=100&h=100&fit=crop",
-      createdAt: "2024-01-10"
-    },
-    {
-      id: 4,
-      name: "Cotton T-Shirt",
-      price: 29.99,
-      category: "Men",
-      status: "draft",
-      sales: 0,
-      views: 12,
-      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop",
-      createdAt: "2024-01-22"
+  // Filter products based on search and status
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const handleDeleteProduct = async (id: number, name: string) => {
+    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+      await deleteProduct(id);
     }
-  ];
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -117,6 +86,8 @@ const VendorProducts = () => {
                   <Input
                     placeholder="Search products..."
                     className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
@@ -131,32 +102,60 @@ const VendorProducts = () => {
         </Card>
 
         {/* Products Grid */}
-        {products.length === 0 ? (
-          <Card>
-            <CardContent className="pt-16 pb-16 text-center">
-              <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-bold mb-4">No products yet</h2>
-              <p className="text-muted-foreground mb-8">
-                Start by adding your first product to your store
-              </p>
-              <Button 
-                onClick={() => navigate('/vendor/add-product')}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Your First Product
-              </Button>
-            </CardContent>
-          </Card>
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <div className="text-muted-foreground">Loading products...</div>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          searchTerm || statusFilter !== 'all' ? (
+            <Card>
+              <CardContent className="pt-16 pb-16 text-center">
+                <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h2 className="text-2xl font-bold mb-4">No products found</h2>
+                <p className="text-muted-foreground mb-8">
+                  No products match your search criteria. Try adjusting your filters.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="pt-16 pb-16 text-center">
+                <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h2 className="text-2xl font-bold mb-4">No products yet</h2>
+                <p className="text-muted-foreground mb-8">
+                  Start by adding your first product to your store
+                </p>
+                <Button 
+                  onClick={() => navigate('/vendor/add-product')}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Your First Product
+                </Button>
+              </CardContent>
+            </Card>
+          )
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <Card key={product.id} className="hover:shadow-lg transition-shadow duration-300">
                 <div className="relative">
                   <img
-                    src={product.image}
+                    src={product.image || 'https://via.placeholder.com/300x200?text=No+Image'}
                     alt={product.name}
                     className="w-full h-48 object-cover rounded-t-lg"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image';
+                    }}
                   />
                   <div className="absolute top-2 right-2">
                     {getStatusBadge(product.status)}
@@ -182,12 +181,12 @@ const VendorProducts = () => {
                   
                   <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground">Sales</p>
-                      <p className="font-medium">{product.sales}</p>
+                      <p className="text-muted-foreground">Status</p>
+                      <p className="font-medium capitalize">{product.status}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Views</p>
-                      <p className="font-medium">{product.views}</p>
+                      <p className="text-muted-foreground">Sizes</p>
+                      <p className="font-medium">{product.sizes.join(', ') || 'N/A'}</p>
                     </div>
                   </div>
                   
@@ -202,7 +201,12 @@ const VendorProducts = () => {
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-red-600 hover:text-red-700"
+                        onClick={() => handleDeleteProduct(product.id!, product.name)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -214,10 +218,10 @@ const VendorProducts = () => {
         )}
 
         {/* Pagination would go here */}
-        {products.length > 0 && (
+        {filteredProducts.length > 0 && (
           <div className="mt-8 flex justify-center">
             <p className="text-muted-foreground text-sm">
-              Showing {products.length} of {products.length} products
+              Showing {filteredProducts.length} of {products.length} products
             </p>
           </div>
         )}

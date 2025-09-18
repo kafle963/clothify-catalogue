@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
-import { User, Store, ArrowLeft } from 'lucide-react';
+import { User, Store, ArrowLeft, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AuthModalProps {
@@ -37,6 +37,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     // Scroll to top when navigating to vendor login
     window.scrollTo({ top: 0, behavior: 'smooth' });
     navigate('/vendor/login');
+  };
+
+  const handleAdminLogin = () => {
+    onClose();
+    // Scroll to top when navigating to admin login
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate('/admin/login');
   };
 
   const handleBackToSelection = () => {
@@ -88,7 +95,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         onClose();
         setSignupForm({ name: '', email: '', password: '', confirmPassword: '' });
       } else {
-        toast.error('Signup failed. Please check your details and try again. If you\'re seeing database errors, Supabase may not be configured.');
+        toast.error('Signup failed. Please check your details and try again.');
       }
     } catch (error) {
       toast.error('An unexpected error occurred. If this persists, please check the console for more details.');
@@ -106,7 +113,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <DialogHeader>
               <DialogTitle className="text-center">Welcome to Clothify</DialogTitle>
               <p className="text-center text-muted-foreground text-sm">
-                Choose how you'd like to join our platform
+                Choose how you'd like to access our platform
               </p>
             </DialogHeader>
             
@@ -137,6 +144,21 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   <CardTitle className="text-lg">Vendor</CardTitle>
                   <CardDescription>
                     Sell your products and manage your business on our platform
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+              
+              <Card 
+                className="cursor-pointer hover:shadow-md transition-all duration-200 hover:border-accent group"
+                onClick={handleAdminLogin}
+              >
+                <CardHeader className="text-center pb-3">
+                  <div className="mx-auto w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-orange-200 transition-colors">
+                    <Shield className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <CardTitle className="text-lg">Admin</CardTitle>
+                  <CardDescription>
+                    Manage vendors, products, and oversee platform operations
                   </CardDescription>
                 </CardHeader>
               </Card>

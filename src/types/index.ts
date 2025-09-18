@@ -163,3 +163,63 @@ export interface VendorStats {
   monthlyRevenue: number;
   totalOrders: number;
 }
+
+// Admin-related types
+export interface Admin {
+  id: string;
+  email: string;
+  name: string;
+  role: 'super_admin' | 'admin' | 'moderator';
+  permissions: AdminPermission[];
+  isActive: boolean;
+  lastLogin?: string;
+  createdAt: string;
+}
+
+export interface AdminPermission {
+  resource: 'vendors' | 'products' | 'users' | 'orders' | 'analytics' | 'settings';
+  actions: ('create' | 'read' | 'update' | 'delete' | 'approve' | 'reject')[];
+}
+
+export interface AdminAuthContextType {
+  admin: Admin | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  isLoading: boolean;
+  hasPermission: (resource: string, action: string) => boolean;
+}
+
+export interface AdminStats {
+  totalVendors: number;
+  pendingVendors: number;
+  approvedVendors: number;
+  rejectedVendors: number;
+  totalProducts: number;
+  pendingProducts: number;
+  approvedProducts: number;
+  rejectedProducts: number;
+  totalUsers: number;
+  activeUsers: number;
+  totalOrders: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+  weeklySignups: number;
+}
+
+export interface VendorApprovalAction {
+  id: string;
+  vendorId: string;
+  action: 'approve' | 'reject';
+  reason?: string;
+  adminId: string;
+  timestamp: string;
+}
+
+export interface ProductApprovalAction {
+  id: string;
+  productId: string;
+  action: 'approve' | 'reject';
+  reason?: string;
+  adminId: string;
+  timestamp: string;
+}

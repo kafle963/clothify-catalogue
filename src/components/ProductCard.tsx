@@ -85,14 +85,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </div>
       
       <div className="p-4" onClick={() => navigate(`/product/${product.id}`)}>
-        <p className="text-sm text-muted-foreground mb-1 group-hover:text-accent/70 transition-colors duration-300">{product.category}</p>
-        <h3 className="font-semibold mb-2 group-hover:text-accent transition-all duration-300">
+        <p className="text-sm text-muted-foreground mb-1 group-hover:text-accent/80 transition-colors duration-300 font-medium">{product.category}</p>
+        <h3 className="font-bold mb-2 group-hover:text-accent transition-all duration-300 text-foreground">
           {product.name}
         </h3>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold group-hover:text-accent transition-colors duration-300">${product.price}</span>
+          <span className="text-lg font-bold text-foreground group-hover:text-accent transition-colors duration-300">${product.price}</span>
           {product.originalPrice && (
-            <span className="text-sm text-muted-foreground line-through">
+            <span className="text-sm text-muted-foreground line-through font-medium">
               ${product.originalPrice}
             </span>
           )}

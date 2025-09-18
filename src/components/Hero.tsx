@@ -74,24 +74,25 @@ const Hero = () => {
                   className="w-full h-full object-cover object-center"
                 />
                 
-                {/* Gradient Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-r ${slide.gradient} opacity-80`}></div>
+                {/* Gradient Overlay - Enhanced for better contrast */}
+                <div className={`absolute inset-0 bg-gradient-to-r ${slide.gradient} opacity-85`}></div>
+                <div className="absolute inset-0 bg-black/20"></div>
                 
                 {/* Content Overlay */}
                 <div className="absolute inset-0 flex items-center justify-center text-center text-white px-4 sm:px-6 lg:px-8">
                   <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 lg:space-y-10">
-                    {/* Title */}
+                    {/* Title - Enhanced contrast */}
                     <div className="space-y-3 sm:space-y-4">
-                      <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight">
+                      <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-white drop-shadow-lg">
                         {slide.title}
                       </h1>
-                      <h2 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-light tracking-wide">
+                      <h2 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-medium tracking-wide text-white drop-shadow-md">
                         {slide.subtitle}
                       </h2>
                     </div>
                     
-                    {/* Description */}
-                    <p className="text-lg sm:text-xl lg:text-2xl max-w-2xl mx-auto leading-relaxed opacity-90">
+                    {/* Description - Enhanced readability */}
+                    <p className="text-lg sm:text-xl lg:text-2xl max-w-2xl mx-auto leading-relaxed text-white/95 drop-shadow-sm font-medium">
                       {slide.description}
                     </p>
                   </div>

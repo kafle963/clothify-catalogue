@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Package, 
@@ -8,7 +8,8 @@ import {
   FileText, 
   Image as ImageIcon,
   X,
-  Plus
+  Plus,
+  Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,11 +20,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useVendorAuth } from '@/contexts/VendorAuthContext';
+import { useVendorProducts } from '@/contexts/VendorProductsContext';
 import VendorNavigation from '@/components/VendorNavigation';
 import { VendorProduct } from '@/types';
+import { processImageFiles, revokeImagePreview } from '@/utils/imageUpload';
 
 const AddProduct = () => {
   const { vendor } = useVendorAuth();
+  const { addProduct } = useVendorProducts();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,7 +47,26 @@ const AddProduct = () => {
   });
 
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(url => {
+        revokeImagePreview(url);
+      });
+    };
+  }, []);
+
+  // Also cleanup when imagePreviews change
+  useEffect(() => {
+    return () => {
+      // This cleanup runs before the next effect or on unmount
+    };
+  }, [imagePreviews]);
 
   const categories = [
     'Women',
@@ -74,34 +97,75 @@ const AddProduct = () => {
     });
   };
 
-  const handleImageUrlChange = (index: number, url: string) => {
-    const updated = [...imageUrls];
-    updated[index] = url;
-    setImageUrls(updated);
-    
-    // Update product images, filtering out empty URLs
-    const validUrls = updated.filter(url => url.trim() !== '');
-    setProduct(prev => ({ 
-      ...prev, 
-      images: validUrls,
-      image: validUrls[0] || '' // First image as main image
+  const handleImageUpload = (files: FileList | null) => {
+    if (!files) return;
+
+    const { validFiles, previews, errors } = processImageFiles(files);
+
+    // Show any errors
+    if (errors.length > 0) {
+      alert(errors.join('\n'));
+    }
+
+    if (validFiles.length === 0) return;
+
+    // Update state with new images
+    setSelectedImages(prev => [...prev, ...validFiles]);
+    setImagePreviews(prev => [...prev, ...previews]);
+
+    // Update product with image data
+    const allPreviews = [...imagePreviews, ...previews];
+    setProduct(prev => ({
+      ...prev,
+      images: allPreviews,
+      image: allPreviews[0] || ''
     }));
   };
 
-  const addImageUrl = () => {
-    setImageUrls([...imageUrls, '']);
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
   };
 
-  const removeImageUrl = (index: number) => {
-    const updated = imageUrls.filter((_, i) => i !== index);
-    setImageUrls(updated);
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
     
-    const validUrls = updated.filter(url => url.trim() !== '');
-    setProduct(prev => ({ 
-      ...prev, 
-      images: validUrls,
-      image: validUrls[0] || ''
+    const files = e.dataTransfer.files;
+    handleImageUpload(files);
+  };
+
+  const removeImage = (index: number) => {
+    // Revoke the object URL to free memory
+    if (imagePreviews[index]) {
+      revokeImagePreview(imagePreviews[index]);
+    }
+
+    // Remove from arrays
+    const updatedFiles = selectedImages.filter((_, i) => i !== index);
+    const updatedPreviews = imagePreviews.filter((_, i) => i !== index);
+    
+    setSelectedImages(updatedFiles);
+    setImagePreviews(updatedPreviews);
+
+    // Update product
+    setProduct(prev => ({
+      ...prev,
+      images: updatedPreviews,
+      image: updatedPreviews[0] || ''
     }));
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   const handleSubmit = async (e: React.FormEvent, asDraft = false) => {
@@ -112,33 +176,40 @@ const AddProduct = () => {
       return;
     }
 
+    if (selectedImages.length === 0) {
+      alert('Please upload at least one product image');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Simulate API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newProduct: VendorProduct = {
+      // Create product data
+      const productData = {
         ...product,
-        id: Date.now(),
         vendorId: vendor?.id || '',
         status: asDraft ? 'draft' : 'pending',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        reviews: [],
-        averageRating: 0,
-        totalReviews: 0
-      } as VendorProduct;
+        images: imagePreviews,
+        image: imagePreviews[0] || '',
+        sizes: selectedSizes
+      } as Omit<VendorProduct, 'id' | 'createdAt' | 'updatedAt'>;
 
-      console.log('Product created:', newProduct);
-      
-      if (asDraft) {
-        alert('Product saved as draft!');
-      } else {
-        alert('Product submitted for review!');
+      // Add product using context
+      const newProduct = await addProduct(productData);
+
+      if (newProduct) {
+        console.log('Product created:', newProduct);
+        console.log('Images uploaded:', selectedImages.map(file => ({
+          name: file.name,
+          size: file.size,
+          type: file.type
+        })));
+        
+        // Clean up object URLs
+        imagePreviews.forEach(url => revokeImagePreview(url));
+        
+        navigate('/vendor/dashboard'); // Navigate to dashboard to see the pending product
       }
-      
-      navigate('/vendor/products');
     } catch (error) {
       console.error('Error creating product:', error);
       alert('Failed to create product. Please try again.');
@@ -338,61 +409,130 @@ const AddProduct = () => {
                   <span>Product Images</span>
                 </CardTitle>
                 <CardDescription>
-                  Add image URLs for your product (first image will be the main image)
+                  Upload images from your device (first image will be the main image). Max 5MB per image.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {imageUrls.map((url, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div className="flex-1">
-                      <Input
-                        placeholder="https://example.com/image.jpg"
-                        value={url}
-                        onChange={(e) => handleImageUrlChange(index, e.target.value)}
-                      />
-                    </div>
-                    {imageUrls.length > 1 && (
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => handleImageUpload(e.target.files)}
+                  className="hidden"
+                />
+
+                {/* Upload button */}
+                <div 
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+                    isDragOver 
+                      ? 'border-primary bg-primary/5 border-solid' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <Camera className={`h-12 w-12 mx-auto mb-4 ${
+                    isDragOver ? 'text-primary' : 'text-muted-foreground'
+                  }`} />
+                  <p className="text-lg font-medium mb-2">
+                    {isDragOver ? 'Drop images here' : 'Upload Product Images'}
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {isDragOver 
+                      ? 'Release to upload images' 
+                      : 'Click to select images or drag and drop'
+                    }
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={triggerFileInput}
+                    className="mx-auto"
+                    disabled={isDragOver}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose Images
+                  </Button>
+                </div>
+
+                {/* Image previews */}
+                {imagePreviews.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">Selected Images ({imagePreviews.length})</h4>
                       <Button
                         type="button"
                         variant="outline"
-                        size="icon"
-                        onClick={() => removeImageUrl(index)}
+                        size="sm"
+                        onClick={triggerFileInput}
                       >
-                        <X className="h-4 w-4" />
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add More
                       </Button>
-                    )}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={preview}
+                            alt={`Product ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-md border"
+                          />
+                          
+                          {/* Main image badge */}
+                          {index === 0 && (
+                            <Badge className="absolute top-1 left-1 text-xs">
+                              Main
+                            </Badge>
+                          )}
+                          
+                          {/* Remove button */}
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                          
+                          {/* Image info */}
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-1 rounded-b-md">
+                            <div className="truncate">
+                              {selectedImages[index]?.name.length > 15 
+                                ? selectedImages[index]?.name.substring(0, 15) + '...'
+                                : selectedImages[index]?.name
+                              }
+                            </div>
+                            <div className="text-white/80">
+                              {(selectedImages[index]?.size / 1024 / 1024).toFixed(1)}MB
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="text-xs text-muted-foreground">
+                      💡 Tip: The first image will be used as the main product image. You can rearrange by removing and re-adding images in your preferred order.
+                    </div>
                   </div>
-                ))}
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addImageUrl}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Another Image
-                </Button>
+                )}
 
-                {product.images && product.images.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                    {product.images.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={url}
-                          alt={`Product ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-md border"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100x100?text=Image+Error';
-                          }}
-                        />
-                        {index === 0 && (
-                          <Badge className="absolute top-1 left-1 text-xs">
-                            Main
-                          </Badge>
-                        )}
-                      </div>
-                    ))}
+                {/* Instructions when no images */}
+                {imagePreviews.length === 0 && (
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p>📸 <strong>Image Requirements:</strong></p>
+                    <ul className="list-disc list-inside space-y-1 ml-4">
+                      <li>Supported formats: JPG, PNG, WebP, GIF</li>
+                      <li>Maximum file size: 5MB per image</li>
+                      <li>Recommended size: 800x800 pixels or higher</li>
+                      <li>Use high-quality, well-lit photos</li>
+                    </ul>
                   </div>
                 )}
               </CardContent>

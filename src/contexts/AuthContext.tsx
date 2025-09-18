@@ -21,7 +21,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize authentication with timeout protection
+    // Initialize authentication
     const initializeAuth = async () => {
       // Check if Supabase is properly configured
       const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
@@ -30,7 +30,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                                    import.meta.env.VITE_SUPABASE_ANON_KEY !== 'your_supabase_anon_key';
       
       if (!isSupabaseConfigured) {
-        createDemoUser();
+        console.error('Supabase is not properly configured. Please set up your environment variables.');
+        setLoading(false);
         return;
       }
 
@@ -54,39 +55,16 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           );
           
           await Promise.race([profilePromise, profileTimeout]);
-        } else {
-          // No session found, create demo user for immediate functionality
-          createDemoUser();
         }
       } catch (error) {
         console.error('Error in session initialization:', error);
-        console.log('Falling back to demo mode for immediate functionality');
-        createDemoUser();
       } finally {
         console.log('Setting loading to false');
         setLoading(false);
       }
     };
 
-    const createDemoUser = () => {
-      const generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0;
-          const v = c == 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        });
-      };
-      
-      const demoUser: User = {
-        id: generateUUID(),
-        email: 'demo@clothify.com',
-        name: 'Demo User',
-        account_type: 'customer'
-      };
-      
-      setUser(demoUser);
-      console.log('Demo user created:', demoUser.id);
-    };
+
 
     const createFallbackUser = (supabaseUser: SupabaseUser) => {
       const fallbackUser: User = {
@@ -254,7 +232,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    
     // Check if Supabase is properly configured
     const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
                                  import.meta.env.VITE_SUPABASE_ANON_KEY &&
@@ -262,22 +239,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                                  import.meta.env.VITE_SUPABASE_ANON_KEY !== 'your_supabase_anon_key';
     
     if (!isSupabaseConfigured) {
-      const generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0;
-          const v = c == 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        });
-      };
-      
-      const demoUser: User = {
-        id: generateUUID(),
-        email: email,
-        name: email.split('@')[0],
-        account_type: 'customer'
-      };
-      setUser(demoUser);
-      return true;
+      console.error('Supabase is not properly configured. Please set up your environment variables.');
+      return false;
     }
 
     try {
@@ -327,7 +290,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signup = async (email: string, password: string, name: string, accountType: 'customer' | 'vendor' = 'customer'): Promise<boolean> => {
-    
     // Check if Supabase is properly configured
     const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
                                  import.meta.env.VITE_SUPABASE_ANON_KEY &&
@@ -335,22 +297,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                                  import.meta.env.VITE_SUPABASE_ANON_KEY !== 'your_supabase_anon_key';
     
     if (!isSupabaseConfigured) {
-      const generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0;
-          const v = c == 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        });
-      };
-      
-      const demoUser: User = {
-        id: generateUUID(),
-        email: email,
-        name: name,
-        account_type: accountType
-      };
-      setUser(demoUser);
-      return true;
+      console.error('Supabase is not properly configured. Please set up your environment variables.');
+      return false;
     }
 
     try {
@@ -412,9 +360,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'your_supabase_project_url') {
-        await supabase.auth.signOut();
-      }
+      await supabase.auth.signOut();
       setUser(null);
       localStorage.removeItem('cart');
     } catch (error) {
@@ -427,12 +373,13 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = async (updates: Partial<User>) => {
     if (!user) return;
 
-    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url') {
-      const updatedUser: User = {
-        ...user,
-        ...updates,
-      };
-      setUser(updatedUser);
+    const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && 
+                                 import.meta.env.VITE_SUPABASE_ANON_KEY &&
+                                 import.meta.env.VITE_SUPABASE_URL !== 'your_supabase_project_url' &&
+                                 import.meta.env.VITE_SUPABASE_ANON_KEY !== 'your_supabase_anon_key';
+
+    if (!isSupabaseConfigured) {
+      console.error('Supabase is not properly configured. Cannot update profile.');
       return;
     }
 

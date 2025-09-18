@@ -33,6 +33,7 @@ import { useData } from '@/contexts/DataContext';
 import { AdminStats } from '@/types';
 import { seedTestData, clearTestData } from '@/utils/testDataSeeder';
 import { toast } from '@/components/ui/sonner';
+import { formatCurrency } from '@/utils/salesCalculations';
 
 const AdminDashboard = () => {
   const { admin, hasPermission, logout } = useAdminAuth();
@@ -148,6 +149,48 @@ const AdminDashboard = () => {
     return Math.round((stats.activeUsers / total) * 100);
   };
 
+  const getRecentActivity = () => {
+    const activities = [];
+    
+    // Add recent vendor approvals
+    vendors.filter(v => v.isApproved).slice(0, 2).forEach(vendor => {
+      activities.push({
+        type: 'vendor_approved',
+        title: `Vendor "${vendor.businessName}" approved`,
+        description: `Active vendor • Joined ${formatDate(vendor.joinedDate)}`,
+        date: vendor.joinedDate,
+        icon: 'check',
+        color: 'green'
+      });
+    });
+    
+    // Add pending products
+    products.filter(p => p.status === 'pending').slice(0, 2).forEach(product => {
+      activities.push({
+        type: 'product_pending',
+        title: `Product "${product.name}" awaiting review`,
+        description: `Pending approval • Added ${formatDate(product.createdAt)}`,
+        date: product.createdAt,
+        icon: 'package',
+        color: 'blue'
+      });
+    });
+    
+    // Add pending vendors
+    vendors.filter(v => !v.isApproved).slice(0, 2).forEach(vendor => {
+      activities.push({
+        type: 'vendor_pending',
+        title: `New vendor application: "${vendor.businessName}"`,
+        description: `Awaiting approval • Applied ${formatDate(vendor.joinedDate)}`,
+        date: vendor.joinedDate,
+        icon: 'clock',
+        color: 'amber'
+      });
+    });
+    
+    // Sort by date (most recent first)
+    return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+  };
   const renderWelcomeHeader = () => (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
       <div>
@@ -590,45 +633,62 @@ const AdminDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Real activity items based on actual data */}
-            {vendors.filter(v => v.isApproved).slice(0, 1).map(vendor => (
-              <div key={vendor.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border-l-4 border-l-green-500">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+            {/* Dynamic activity items based on actual data */}
+            {getRecentActivity().map((activity, index) => {
+              const getActivityIcon = (iconType: string) => {
+                switch (iconType) {
+                  case 'check':
+                    return <CheckCircle className="h-4 w-4 text-green-600" />;
+                  case 'package':
+                    return <Package className="h-4 w-4 text-blue-600" />;
+                  case 'clock':
+                    return <Clock className="h-4 w-4 text-amber-600" />;
+                  default:
+                    return <Bell className="h-4 w-4 text-gray-600" />;
+                }
+              };
+              
+              const getBorderColor = (color: string) => {
+                switch (color) {
+                  case 'green':
+                    return 'border-l-green-500';
+                  case 'blue':
+                    return 'border-l-blue-500';
+                  case 'amber':
+                    return 'border-l-amber-500';
+                  default:
+                    return 'border-l-gray-500';
+                }
+              };
+              
+              const getBgColor = (color: string) => {
+                switch (color) {
+                  case 'green':
+                    return 'bg-green-100';
+                  case 'blue':
+                    return 'bg-blue-100';
+                  case 'amber':
+                    return 'bg-amber-100';
+                  default:
+                    return 'bg-gray-100';
+                }
+              };
+              
+              return (
+                <div key={index} className={`flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border-l-4 ${getBorderColor(activity.color)}`}>
+                  <div className={`p-2 ${getBgColor(activity.color)} rounded-full`}>
+                    {getActivityIcon(activity.icon)}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.title}</p>
+                    <p className="text-xs text-muted-foreground">{activity.description}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Vendor "{vendor.businessName}" is approved</p>
-                  <p className="text-xs text-muted-foreground">Active vendor • {formatDate(vendor.joinedDate)}</p>
-                </div>
-              </div>
-            ))}
-            
-            {products.filter(p => p.status === 'pending').slice(0, 1).map(product => (
-              <div key={product.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border-l-4 border-l-blue-500">
-                <div className="p-2 bg-blue-100 rounded-full">
-                  <Package className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Product "{product.name}" awaiting review</p>
-                  <p className="text-xs text-muted-foreground">Pending approval • {formatDate(product.createdAt)}</p>
-                </div>
-              </div>
-            ))}
-            
-            {vendors.filter(v => !v.isApproved).slice(0, 1).map(vendor => (
-              <div key={vendor.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border-l-4 border-l-amber-500">
-                <div className="p-2 bg-amber-100 rounded-full">
-                  <Clock className="h-4 w-4 text-amber-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New vendor application: "{vendor.businessName}"</p>
-                  <p className="text-xs text-muted-foreground">Awaiting approval • {formatDate(vendor.joinedDate)}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             
             {/* Show empty state if no activity */}
-            {vendors.length === 0 && products.length === 0 && (
+            {getRecentActivity().length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <Bell className="h-12 w-12 mx-auto text-gray-300 mb-3" />
                 <p className="text-sm font-medium">No recent activity</p>

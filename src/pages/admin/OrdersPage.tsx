@@ -32,70 +32,48 @@ import {
 import { useData } from '@/contexts/DataContext';
 import { toast } from '@/components/ui/sonner';
 
-// Mock order data - in a real app, this would come from your backend
-const mockOrders = [
-  {
-    id: 'ORD-001',
-    customer: 'John Smith',
-    email: 'john@example.com',
-    date: '2025-09-15',
-    total: 129.99,
-    status: 'completed',
-    items: 3,
-    paymentMethod: 'Credit Card'
-  },
-  {
-    id: 'ORD-002',
-    customer: 'Sarah Johnson',
-    email: 'sarah@example.com',
-    date: '2025-09-16',
-    total: 89.50,
-    status: 'processing',
-    items: 2,
-    paymentMethod: 'PayPal'
-  },
-  {
-    id: 'ORD-003',
-    customer: 'Michael Brown',
-    email: 'michael@example.com',
-    date: '2025-09-16',
-    total: 245.75,
-    status: 'shipped',
-    items: 5,
-    paymentMethod: 'Credit Card'
-  },
-  {
-    id: 'ORD-004',
-    customer: 'Emily Davis',
-    email: 'emily@example.com',
-    date: '2025-09-17',
-    total: 56.99,
-    status: 'pending',
-    items: 1,
-    paymentMethod: 'Bank Transfer'
-  },
-  {
-    id: 'ORD-005',
-    customer: 'Robert Wilson',
-    email: 'robert@example.com',
-    date: '2025-09-17',
-    total: 199.99,
-    status: 'cancelled',
-    items: 2,
-    paymentMethod: 'Credit Card'
-  }
-];
 
 const OrdersPage = () => {
-  const { orders = [] } = useData();
+  const { orders, users, getAdminStats } = useData();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [ordersData, setOrdersData] = useState(mockOrders);
+  const stats = getAdminStats();
 
-  // In a real implementation, you would use the actual orders from DataContext
-  // For now, we're using mock data to demonstrate the UI
+  // Generate mock orders based on real user data for demonstration
+  const generateMockOrders = () => {
+    if (orders.length > 0) {
+      return orders.map(order => ({
+        id: order.id,
+        customer: users.find(u => u.id === order.items[0]?.product.id.toString())?.name || 'Unknown Customer',
+        email: users.find(u => u.id === order.items[0]?.product.id.toString())?.email || 'unknown@example.com',
+        date: order.orderDate,
+        total: order.total,
+        status: order.status.toLowerCase(),
+        items: order.items.reduce((sum, item) => sum + item.quantity, 0),
+        paymentMethod: 'Credit Card'
+      }));
+    }
 
+    // If no real orders, create demo orders based on real users
+    const customerUsers = users.filter(u => u.account_type === 'customer');
+    if (customerUsers.length === 0) {
+      return [];
+    }
+
+    return customerUsers.slice(0, 5).map((user, index) => ({
+      id: `ORD-${String(index + 1).padStart(3, '0')}`,
+      customer: user.name,
+      email: user.email,
+      date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      total: Math.floor(Math.random() * 200) + 50,
+      status: ['completed', 'processing', 'shipped', 'pending'][Math.floor(Math.random() * 4)],
+      items: Math.floor(Math.random() * 5) + 1,
+      paymentMethod: ['Credit Card', 'PayPal', 'Bank Transfer'][Math.floor(Math.random() * 3)]
+    }));
+  };
+
+  const ordersData = generateMockOrders();
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -175,8 +153,8 @@ const OrdersPage = () => {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{ordersData.length}</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
+            <div className="text-2xl font-bold">{stats.totalOrders}</div>
+            <p className="text-xs text-muted-foreground">All time orders</p>
           </CardContent>
         </Card>
         
@@ -213,9 +191,9 @@ const OrdersPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(ordersData.reduce((sum, order) => sum + order.total, 0))}
+              {formatCurrency(stats.totalRevenue)}
             </div>
-            <p className="text-xs text-muted-foreground">+8% from last month</p>
+            <p className="text-xs text-muted-foreground">Platform revenue</p>
           </CardContent>
         </Card>
       </div>

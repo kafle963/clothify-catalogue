@@ -90,7 +90,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       if (isSupabaseConfigured) {
         // Load from Supabase when available
-        const { data, error } = await supabase.from('users').select('*');
+        const { data, error } = await supabase.from('profiles').select('*');
         if (error) throw error;
         setUsers(data || []);
       } else {

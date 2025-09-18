@@ -35,6 +35,9 @@ const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const VendorManagement = lazy(() => import('./pages/admin/VendorManagement'));
 const ProductManagement = lazy(() => import('./pages/admin/ProductManagement'));
 const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
+const AdminSettings = lazy(() => import('./pages/admin/SettingsPage'));
+const AdminOrders = lazy(() => import('./pages/admin/OrdersPage'));
+const AdminAnalytics = lazy(() => import('./pages/admin/AnalyticsPage'));
 
 // Context providers and components
 import { AuthProvider } from "./contexts/AuthContext";
@@ -97,6 +100,9 @@ const App = () => (
                           <Route path="/admin/vendors" element={<AdminPageWrapper><VendorManagement /></AdminPageWrapper>} />
                           <Route path="/admin/products" element={<AdminPageWrapper><ProductManagement /></AdminPageWrapper>} />
                           <Route path="/admin/users" element={<AdminPageWrapper><UserManagement /></AdminPageWrapper>} />
+                          <Route path="/admin/orders" element={<AdminPageWrapper><AdminOrders /></AdminPageWrapper>} />
+                          <Route path="/admin/analytics" element={<AdminPageWrapper><AdminAnalytics /></AdminPageWrapper>} />
+                          <Route path="/admin/settings" element={<AdminPageWrapper><AdminSettings /></AdminPageWrapper>} />
                           <Route path="/admin/debug" element={<AdminPageWrapper><AdminDebugPage /></AdminPageWrapper>} />
                           
                           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

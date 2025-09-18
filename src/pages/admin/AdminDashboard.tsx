@@ -15,7 +15,14 @@ import {
   XCircle,
   Eye,
   UserCheck,
-  RefreshCw
+  RefreshCw,
+  Grid3X3,
+  List,
+  Filter,
+  Search,
+  Bell,
+  Settings,
+  LogOut
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +35,7 @@ import { seedTestData, clearTestData } from '@/utils/testDataSeeder';
 import { toast } from '@/components/ui/sonner';
 
 const AdminDashboard = () => {
-  const { admin, hasPermission } = useAdminAuth();
+  const { admin, hasPermission, logout } = useAdminAuth();
   const { getAdminStats, isLoadingUsers, isLoadingVendors, isLoadingProducts, vendors, products, users, refreshAllData } = useData();
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStats>({
@@ -48,6 +55,8 @@ const AdminDashboard = () => {
     weeklySignups: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter'>('month');
 
   useEffect(() => {
     loadAdminStats();
@@ -96,11 +105,29 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/admin/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout');
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
     }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   const getVendorApprovalRate = () => {
@@ -120,6 +147,57 @@ const AdminDashboard = () => {
     if (total === 0) return 0;
     return Math.round((stats.activeUsers / total) * 100);
   };
+
+  const renderWelcomeHeader = () => (
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold">
+          Welcome back, {admin?.name}!
+        </h1>
+        <p className="mt-1 opacity-90">
+          Here's what's happening with your platform today.
+        </p>
+      </div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={handleRefreshData}
+            disabled={isLoading}
+            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
+          >
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            Refresh Data
+          </Button>
+          <Badge className="bg-white/20 text-white border-white/30">
+            {admin?.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+          </Badge>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="secondary" 
+            size="icon"
+            onClick={() => navigate('/admin/settings')}
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="secondary" 
+            size="icon"
+            onClick={handleLogout}
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 
   const quickActionItems = [
     {
@@ -187,46 +265,19 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {admin?.name}!
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Here's what's happening with your platform today.
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0 flex items-center space-x-2">
-          <Button
-            variant="outline"
-            onClick={handleRefreshData}
-            disabled={isLoading}
-            className="flex items-center gap-2"
-          >
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            Refresh Data
-          </Button>
-          <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-            {admin?.role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-          </Badge>
-        </div>
-      </div>
+      {renderWelcomeHeader()}
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Revenue */}
-        <Card>
+        <Card className="border border-gray-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               <span className="inline-flex items-center text-green-600">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +12.5%
@@ -237,14 +288,14 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Total Users */}
-        <Card>
+        <Card className="border border-gray-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               <span className="inline-flex items-center text-green-600">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 +{stats.weeklySignups}
@@ -255,14 +306,14 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Total Vendors */}
-        <Card>
+        <Card className="border border-gray-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Vendors</CardTitle>
             <Store className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.approvedVendors}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               {stats.pendingVendors > 0 && (
                 <span className="inline-flex items-center text-amber-600">
                   <Clock className="h-3 w-3 mr-1" />
@@ -274,14 +325,14 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Total Products */}
-        <Card>
+        <Card className="border border-gray-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Live Products</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.approvedProducts}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               {stats.pendingProducts > 0 && (
                 <span className="inline-flex items-center text-amber-600">
                   <Clock className="h-3 w-3 mr-1" />
@@ -296,7 +347,7 @@ const AdminDashboard = () => {
       {/* Approval Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Vendor Approval Status */}
-        <Card>
+        <Card className="border border-gray-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Vendor Approvals</CardTitle>
             <CardDescription>Current vendor approval status</CardDescription>
@@ -335,7 +386,7 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Product Approval Status */}
-        <Card>
+        <Card className="border border-gray-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Product Approvals</CardTitle>
             <CardDescription>Current product approval status</CardDescription>
@@ -374,7 +425,7 @@ const AdminDashboard = () => {
         </Card>
 
         {/* User Activity */}
-        <Card>
+        <Card className="border border-gray-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">User Activity</CardTitle>
             <CardDescription>User engagement metrics</CardDescription>
@@ -414,7 +465,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="border border-gray-200 shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg">Quick Actions</CardTitle>
           <CardDescription>Common administrative tasks</CardDescription>
@@ -427,7 +478,7 @@ const AdminDashboard = () => {
                 <Button
                   key={index}
                   variant="outline"
-                  className="h-auto p-4 flex flex-col items-start space-y-2 hover:border-blue-200 hover:bg-blue-50"
+                  className="h-auto p-4 flex flex-col items-start space-y-2 hover:border-blue-200 hover:bg-blue-50 transition-colors"
                   onClick={action.action}
                 >
                   <div className="flex items-center justify-between w-full">
@@ -453,7 +504,7 @@ const AdminDashboard = () => {
 
       {/* Development Tools - Show data seeding options */}
       {process.env.NODE_ENV === 'development' && (
-        <Card>
+        <Card className="border border-gray-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Development Tools</CardTitle>
             <CardDescription>Test data management and diagnostics</CardDescription>
@@ -523,10 +574,13 @@ const AdminDashboard = () => {
       )}
 
       {/* Recent Activity */}
-      <Card>
+      <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Recent Activity</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Bell className="h-5 w-5 text-blue-600" />
+              Recent Activity
+            </CardTitle>
             <CardDescription>Latest system events and updates</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={() => navigate('/admin/analytics')}>
@@ -538,37 +592,37 @@ const AdminDashboard = () => {
           <div className="space-y-4">
             {/* Real activity items based on actual data */}
             {vendors.filter(v => v.isApproved).slice(0, 1).map(vendor => (
-              <div key={vendor.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+              <div key={vendor.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border-l-4 border-l-green-500">
                 <div className="p-2 bg-green-100 rounded-full">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium">Vendor "{vendor.businessName}" is approved</p>
-                  <p className="text-xs text-muted-foreground">Active vendor</p>
+                  <p className="text-xs text-muted-foreground">Active vendor • {formatDate(vendor.joinedDate)}</p>
                 </div>
               </div>
             ))}
             
             {products.filter(p => p.status === 'pending').slice(0, 1).map(product => (
-              <div key={product.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+              <div key={product.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border-l-4 border-l-blue-500">
                 <div className="p-2 bg-blue-100 rounded-full">
                   <Package className="h-4 w-4 text-blue-600" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium">Product "{product.name}" awaiting review</p>
-                  <p className="text-xs text-muted-foreground">Pending approval</p>
+                  <p className="text-xs text-muted-foreground">Pending approval • {formatDate(product.createdAt)}</p>
                 </div>
               </div>
             ))}
             
             {vendors.filter(v => !v.isApproved).slice(0, 1).map(vendor => (
-              <div key={vendor.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+              <div key={vendor.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border-l-4 border-l-amber-500">
                 <div className="p-2 bg-amber-100 rounded-full">
                   <Clock className="h-4 w-4 text-amber-600" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium">New vendor application: "{vendor.businessName}"</p>
-                  <p className="text-xs text-muted-foreground">Awaiting approval</p>
+                  <p className="text-xs text-muted-foreground">Awaiting approval • {formatDate(vendor.joinedDate)}</p>
                 </div>
               </div>
             ))}
@@ -576,7 +630,8 @@ const AdminDashboard = () => {
             {/* Show empty state if no activity */}
             {vendors.length === 0 && products.length === 0 && (
               <div className="text-center py-8 text-gray-500">
-                <p className="text-sm">No recent activity</p>
+                <Bell className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                <p className="text-sm font-medium">No recent activity</p>
                 <p className="text-xs">Activity will appear here as vendors and products are added</p>
               </div>
             )}

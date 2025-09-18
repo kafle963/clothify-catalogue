@@ -41,6 +41,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Vendor } from '@/types';
@@ -55,6 +61,8 @@ const VendorManagement = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [processingVendorId, setProcessingVendorId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!hasPermission('vendors', 'read')) {
@@ -85,6 +93,9 @@ const VendorManagement = () => {
         filtered = filtered.filter(vendor => !vendor.isApproved);
       } else if (filterStatus === 'approved') {
         filtered = filtered.filter(vendor => vendor.isApproved);
+      } else if (filterStatus === 'rejected') {
+        // For now, we'll treat rejected as not approved
+        filtered = filtered.filter(vendor => !vendor.isApproved);
       }
     }
 
@@ -99,9 +110,6 @@ const VendorManagement = () => {
 
     setProcessingVendorId(vendorId);
     try {
-      // Mock approval - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       // Update vendor status using DataContext
       updateVendor(vendorId, { isApproved: true });
       
@@ -122,12 +130,7 @@ const VendorManagement = () => {
 
     setProcessingVendorId(vendorId);
     try {
-      // Mock rejection - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, we'll remove the vendor from the list
-      // Note: In a real implementation, you might want to soft delete or move to rejected status
-      // For now, we'll update with isApproved: false and add rejection reason
+      // Update vendor status using DataContext
       updateVendor(vendorId, { isApproved: false });
       
       toast.success('Vendor rejected and notified');
@@ -164,6 +167,19 @@ const VendorManagement = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const calculateProfileCompletion = (vendor: Vendor) => {
+    let completedFields = 0;
+    const totalFields = 5; // name, businessName, email, phone, address
+    
+    if (vendor.name) completedFields++;
+    if (vendor.businessName) completedFields++;
+    if (vendor.email) completedFields++;
+    if (vendor.phone) completedFields++;
+    if (vendor.address) completedFields++;
+    
+    return Math.round((completedFields / totalFields) * 100);
   };
 
   if (isLoadingVendors) {
@@ -417,7 +433,10 @@ const VendorManagement = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedVendor(vendor);
+                          setIsViewDialogOpen(true);
+                        }}>
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
@@ -434,6 +453,108 @@ const VendorManagement = () => {
           ))
         )}
       </div>
+
+      {/* Vendor Detail Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Vendor Details</DialogTitle>
+          </DialogHeader>
+          {selectedVendor && (
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
+                    {selectedVendor.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900">{selectedVendor.businessName}</h3>
+                  <p className="text-gray-600">{selectedVendor.name}</p>
+                  <div className="mt-2 flex items-center space-x-4">
+                    {getStatusBadge(selectedVendor)}
+                    <span className="text-sm text-gray-500">
+                      Joined {formatDate(selectedVendor.joinedDate)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Contact Information</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center">
+                      <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                      {selectedVendor.email}
+                    </div>
+                    {selectedVendor.phone && (
+                      <div className="flex items-center">
+                        <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                        {selectedVendor.phone}
+                      </div>
+                    )}
+                    {selectedVendor.address && (
+                      <div className="flex items-start">
+                        <MapPin className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
+                        <div>
+                          <p>{selectedVendor.address.street}</p>
+                          <p>{selectedVendor.address.city}, {selectedVendor.address.state} {selectedVendor.address.zipCode}</p>
+                          <p>{selectedVendor.address.country}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Business Information</h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium">Profile Completion:</span>
+                      <div className="mt-1">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{ width: `${calculateProfileCompletion(selectedVendor)}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-500">{calculateProfileCompletion(selectedVendor)}% complete</span>
+                      </div>
+                    </div>
+                    {selectedVendor.description && (
+                      <div>
+                        <span className="font-medium">Description:</span>
+                        <p className="text-gray-600">{selectedVendor.description}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {!selectedVendor.isApproved && hasPermission('vendors', 'approve') && (
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsViewDialogOpen(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      handleApproveVendor(selectedVendor.id);
+                      setIsViewDialogOpen(false);
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Approve Vendor
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

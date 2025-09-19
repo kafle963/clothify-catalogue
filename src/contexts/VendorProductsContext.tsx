@@ -46,6 +46,8 @@ export const VendorProductsProvider: React.FC<{ children: React.ReactNode }> = (
 
   useEffect(() => {
     loadProducts();
+  }
+  )
 
   const loadProducts = async () => {
     setIsLoading(true);

@@ -122,26 +122,28 @@ const AdminNavigation = () => {
 
   return (
     <>
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col shadow-lg lg:shadow-none ${
+      {/* Sidebar - Hidden by default on mobile, visible on desktop */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col shadow-lg lg:translate-x-0 lg:z-auto lg:shadow-none ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
-          <Link to="/admin/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Shield className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-bold text-xl text-gray-900">Admin Panel</span>
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 lg:hidden"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            <Link to="/admin/dashboard" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Shield className="h-5 w-5 text-white" />
+              </div>
+              <span className="font-bold text-xl text-gray-900 hidden md:block">Admin Panel</span>
+            </Link>
+          </div>
         </div>
 
         {/* Navigation - Scrollable */}
@@ -181,7 +183,7 @@ const AdminNavigation = () => {
         </nav>
 
         {/* Bottom section - Fixed at bottom */}
-        <div className="flex-shrink-0 p-4 border-t border-gray-200">
+        <div className="flex-shrink-0 p-4 border-t border-gray-200 mt-auto">
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="flex items-center space-x-2 mb-2">
               <Avatar className="h-8 w-8">
@@ -211,65 +213,53 @@ const AdminNavigation = () => {
         </div>
       </aside>
 
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30 lg:hidden">
-        {/* Left Side */}
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          
-          <Link to="/admin/dashboard" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Shield className="h-5 w-5 text-white" />
+      {/* Mobile Header with Hamburger */}
+      <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
+        
+        <Link to="/admin/dashboard" className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <Shield className="h-5 w-5 text-white" />
+          </div>
+          <span className="font-bold text-xl text-gray-900">Admin</span>
+        </Link>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-blue-100 text-blue-600">
+                  {admin.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <div className="flex flex-col space-y-1 p-2">
+              <p className="text-sm font-medium leading-none">{admin.name}</p>
+              <p className="text-xs leading-none text-muted-foreground">{admin.email}</p>
             </div>
-            <span className="font-bold text-xl text-gray-900">Admin</span>
-          </Link>
-        </div>
-
-        {/* Right Side */}
-        <div className="flex items-center space-x-3">
-          {/* Role Badge */}
-          <Badge className={getRoleBadgeColor(admin.role)}>
-            {formatRole(admin.role)}
-          </Badge>
-
-          {/* User Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-blue-100 text-blue-600">
-                    {admin.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <div className="flex flex-col space-y-1 p-2">
-                <p className="text-sm font-medium leading-none">{admin.name}</p>
-                <p className="text-xs leading-none text-muted-foreground">{admin.email}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                navigate('/');
-              }}>
-                <Store className="mr-2 h-4 w-4" />
-                View Store
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              navigate('/');
+            }}>
+              <Store className="mr-2 h-4 w-4" />
+              View Store
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       {/* Overlay for mobile */}

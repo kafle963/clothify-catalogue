@@ -580,37 +580,6 @@ const AdminDashboard = () => {
                   Database Debug
                 </Button>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <h4 className="font-medium text-sm mb-2">📊 Current Data Status</h4>
-                    <div className="text-xs space-y-1">
-                      <p>• Products in database: {products.length}</p>
-                      <p>• Vendors in database: {vendors.length}</p>
-                      <p>• Users in database: {users.length}</p>
-                      <p>• Customer accounts: {users.filter(u => u.account_type === 'customer').length}</p>
-                      <p>• Vendor accounts: {users.filter(u => u.account_type === 'vendor').length}</p>
-                      <p>• Loading states: {isLoadingProducts ? 'Loading...' : 'Ready'}</p>
-                      <p>• Supabase configured: {import.meta.env.VITE_SUPABASE_URL ? '✅' : '❌'}</p>
-                    </div>
-                  </div>
-                
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <h4 className="font-medium text-sm mb-2">🔧 Troubleshooting</h4>
-                  <div className="text-xs space-y-1">
-                    <p>• If no products show: Vendor may need to login and add products</p>
-                    <p>• Check browser console for errors</p>
-                    <p>• Use "Refresh Data" button to reload from database</p>
-                    <p>• Use "Database Debug" to inspect Supabase directly</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-3 text-xs text-muted-foreground border-t pt-3">
-                <p><strong>Seed Test Data:</strong> Adds sample users, vendors, and products with interconnected relationships</p>
-                <p><strong>Clear Data:</strong> Removes all data to demonstrate empty state behavior</p>
-                <p><strong>Database Debug:</strong> Opens diagnostic view to check Supabase tables directly</p>
-              </div>
             </div>
           </CardContent>
         </Card>

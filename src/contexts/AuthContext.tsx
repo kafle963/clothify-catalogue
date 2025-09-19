@@ -334,7 +334,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           id: data.user.id,
           email: data.user.email || email,
           name: name,
-          account_type: accountType
+          account_type: accountType  // Use the passed account type
         };
         setUser(immediateUser);
         

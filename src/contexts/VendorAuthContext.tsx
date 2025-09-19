@@ -44,6 +44,14 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return;
       }
 
+      // Check if this is actually a vendor account by checking the account_type in user metadata
+      const accountType = session.user.user_metadata?.account_type;
+      if (accountType !== 'vendor') {
+        // This is not a vendor account, clear vendor state
+        setVendor(null);
+        return;
+      }
+
       // Fetch vendor profile from Supabase
       const { data: vendorData, error } = await supabase
         .from('vendors')
@@ -91,7 +99,6 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       if (!isSupabaseConfigured) {
-
         console.error('Supabase is not properly configured for vendor authentication.');
         return false;
       }
@@ -108,6 +115,15 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
 
       if (data.user) {
+        // Check if this is actually a vendor account
+        const accountType = data.user.user_metadata?.account_type;
+        if (accountType !== 'vendor') {
+          toast.error('This account is not registered as a vendor. Please sign up as a vendor.');
+          // Sign out the user to prevent confusion
+          await supabase.auth.signOut();
+          return false;
+        }
+
         // Check if vendor profile exists
         const { data: vendorData, error: vendorError } = await supabase
           .from('vendors')
@@ -169,7 +185,7 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         options: {
           data: {
             name: data.name,
-            account_type: 'vendor'
+            account_type: 'vendor' // Explicitly set account type
           }
         }
       });
@@ -298,3 +314,5 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     </VendorAuthContext.Provider>
   );
 };
+
+export default VendorAuthProvider;

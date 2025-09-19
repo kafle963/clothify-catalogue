@@ -32,7 +32,8 @@ const AdminPageWrapper: React.FC<AdminPageWrapperProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <AdminNavigation />
-      <main className="flex-1 lg:ml-0 overflow-auto">
+      {/* Main content area with proper spacing for sidebar */}
+      <main className="flex-1 lg:ml-64">
         <div className="p-4 lg:p-6">
           <div className="max-w-7xl mx-auto">
             {children}

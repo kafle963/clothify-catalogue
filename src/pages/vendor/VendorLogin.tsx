@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useVendorAuth } from '@/contexts/VendorAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const VendorLogin = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +14,15 @@ const VendorLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useVendorAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  // If user is already logged in as a customer, redirect them to the store
+  React.useEffect(() => {
+    if (user && user.account_type === 'customer') {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

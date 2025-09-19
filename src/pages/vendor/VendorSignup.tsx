@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useVendorAuth } from '@/contexts/VendorAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { VendorSignupData } from '@/types';
 
 const VendorSignup = () => {
@@ -23,7 +24,15 @@ const VendorSignup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signup } = useVendorAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  // If user is already logged in as a customer, redirect them to the store
+  React.useEffect(() => {
+    if (user && user.account_type === 'customer') {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (field: keyof VendorSignupData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

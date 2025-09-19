@@ -89,6 +89,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
     
     try {
+      // Always sign up as a customer from this modal
       const success = await signup(signupForm.email, signupForm.password, signupForm.name, 'customer');
       if (success) {
         toast.success('Account created successfully! Welcome to Clothify!');

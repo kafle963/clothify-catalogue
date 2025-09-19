@@ -21,7 +21,6 @@ const VendorPageWrapper: React.FC<VendorPageWrapperProps> = ({ children }) => {
 
   // Check if vendor is authenticated for protected routes
   if (!vendor) {
-    console.log('🔒 No vendor found, redirecting to login');
     // Scroll to top when redirecting
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return <Navigate to="/vendor/login" replace />;

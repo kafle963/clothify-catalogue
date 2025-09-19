@@ -1,100 +1,183 @@
-# Welcome to your Lovable project
+# Clothify Catalogue - E-commerce Platform
 
-## Project info
+A modern, full-featured e-commerce platform built with React, TypeScript, and Supabase.
 
-**URL**: https://lovable.dev/projects/e5565837-9975-471a-95f0-6af75327c604
+## Features
 
-## Supabase Setup (Required for Full Functionality)
+### 🛍️ Customer Experience
+- **Product Catalog**: Browse products with advanced filtering and search
+- **Shopping Cart**: Persistent cart with Supabase integration
+- **Wishlist**: Save favorite products across sessions
+- **User Authentication**: Secure login/signup with profile management
+- **Order Management**: Complete checkout flow with order history
+- **AI Assistant**: Intelligent shopping assistant for product recommendations
 
-This project uses Supabase for authentication and data storage. To enable full functionality:
+### 🏪 Vendor Portal
+- **Vendor Registration**: Complete business profile setup
+- **Product Management**: Add, edit, and manage product listings
+- **Image Upload**: Local image upload with preview functionality
+- **Dashboard Analytics**: Track sales, orders, and performance metrics
+- **Approval Workflow**: Products require admin approval before going live
 
-1. **Create a Supabase Project**
-   - Go to [https://supabase.com](https://supabase.com)
-   - Create a new project
-   - Wait for the project to be ready
+### 👨‍💼 Admin Panel
+- **Vendor Management**: Approve/reject vendor applications
+- **Product Moderation**: Review and approve product submissions
+- **User Management**: Oversee customer and vendor accounts
+- **Analytics Dashboard**: Platform-wide metrics and insights
+- **Order Management**: Track and manage all platform orders
 
-2. **Configure Environment Variables**
-   - Copy your project URL and anon key from the Supabase dashboard
-   - Update the `.env` file with your actual values:
-     ```
-     VITE_SUPABASE_URL=your_actual_supabase_url
-     VITE_SUPABASE_ANON_KEY=your_actual_anon_key
-     ```
+## Technology Stack
 
-3. **Run Database Migrations**
-   - The project includes pre-built migrations in `supabase/migrations/`
-   - You can run these using the Supabase CLI or by copying the SQL to your Supabase SQL editor
-   - The migrations create tables for user profiles, orders, and order items
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Components**: shadcn/ui, Tailwind CSS
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **State Management**: React Context API
+- **Routing**: React Router v6
+- **Icons**: Lucide React
 
-4. **Demo Mode**
-   - If Supabase is not configured, the app will run in demo mode
-   - You can still test the UI and functionality with mock data
-   - Authentication will work locally but data won't persist
+## Quick Start
 
-## How can I edit this code?
+### Prerequisites
+- Node.js 18+ and npm
+- Supabase account (optional for demo mode)
 
-There are several ways of editing your application.
+### Installation
 
-**Use Lovable**
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd clothify-catalogue
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e5565837-9975-471a-95f0-6af75327c604) and start prompting.
+# Install dependencies
+npm install
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Demo Accounts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The application includes demo accounts for testing:
 
-**Use GitHub Codespaces**
+#### Customer Account
+- Email: `customer@clothify.com`
+- Password: `customer123`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+#### Vendor Account
+- Email: `vendor@clothify.com`
+- Password: `vendor123`
 
-## What technologies are used for this project?
+#### Admin Account
+- Email: `admin@clothify.com`
+- Password: `admin123`
 
-This project is built with:
+## Configuration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Environment Variables
 
-## How can I deploy this project?
+Create a `.env` file in the root directory:
 
-Simply open [Lovable](https://lovable.dev/projects/e5565837-9975-471a-95f0-6af75327c604) and click on Share -> Publish.
+```env
+# Supabase Configuration (Optional - app works in demo mode without)
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-## Can I connect a custom domain to my Lovable project?
+# AI Assistant Configuration (Optional)
+VITE_AI_API_URL=https://openrouter.ai/api/v1/chat/completions
+VITE_AI_API_KEY=your_openrouter_api_key
+VITE_SITE_URL=https://your-site.com
+VITE_SITE_NAME=Clothify Catalogue
+```
 
-Yes, you can!
+### Supabase Setup (Optional)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+If you want to use Supabase for data persistence:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. Create a new Supabase project
+2. Run the migrations in `supabase/migrations/`
+3. Update your `.env` file with the project URL and anon key
+
+**Note**: The app works fully in demo mode without Supabase configuration.
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+├── contexts/           # React Context providers
+├── hooks/              # Custom React hooks
+├── pages/              # Page components
+│   ├── admin/          # Admin panel pages
+│   └── vendor/         # Vendor portal pages
+├── types/              # TypeScript type definitions
+├── utils/              # Utility functions
+└── data/               # Static data and mock data
+```
+
+## Key Features
+
+### Multi-User System
+- **Customers**: Browse, shop, and manage orders
+- **Vendors**: Sell products and manage business
+- **Admins**: Oversee platform operations
+
+### Product Management
+- Image upload with validation and preview
+- Category-based organization
+- Size and inventory management
+- Approval workflow for quality control
+
+### Shopping Experience
+- Advanced product search and filtering
+- Persistent shopping cart
+- Wishlist functionality
+- Order tracking and history
+
+### Admin Controls
+- Vendor approval system
+- Product moderation
+- User management
+- Platform analytics
+
+## Development
+
+### Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+```
+
+### Code Quality
+
+- TypeScript for type safety
+- ESLint for code quality
+- Tailwind CSS for consistent styling
+- Component-based architecture
+
+## Deployment
+
+The application can be deployed to any static hosting service:
+
+1. Build the project: `npm run build`
+2. Deploy the `dist` folder to your hosting service
+3. Configure environment variables on your hosting platform
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For questions or support, please contact the development team or create an issue in the repository.

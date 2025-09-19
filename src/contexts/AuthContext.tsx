@@ -110,11 +110,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
-    console.log('Starting fetchUserProfile for user:', supabaseUser.id);
-    console.log('User email:', supabaseUser.email);
     
     try {
-      console.log('Attempting to fetch profile from Supabase...');
       
       // First, create a fallback user immediately to ensure functionality
       const fallbackUser: User = {
@@ -126,7 +123,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Set fallback user immediately to prevent hanging
       setUser(fallbackUser);
-      console.log('Fallback user set, attempting profile fetch...');
       
       let profile = null;
       
@@ -142,17 +138,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       );
       
       const { data: profileData, error } = await Promise.race([profileQuery, queryTimeout]) as any;
-        
-      console.log('📝 Profile query completed:', { 
-        hasProfile: !!profileData, 
-        hasError: !!error,
-        errorCode: error?.code,
-        errorMessage: error?.message 
-      });
 
       if (error && error.code === 'PGRST116') {
         // Profile not found, try to create one
-        console.log('Profile not found, attempting to create new profile...');
         
         const newProfileData = {
           id: supabaseUser.id,
@@ -174,21 +162,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           const { data: newProfile, error: createError } = await Promise.race([createQuery, createTimeout]) as any;
           
           if (createError) {
-            console.error('Error creating profile:', createError);
-            console.log('Keeping fallback user due to create error');
             return;
           }
           
-          console.log('Profile created successfully:', newProfile);
           profile = newProfile;
         } catch (createError) {
-          console.error('Profile creation failed:', createError);
-          console.log('Keeping fallback user due to creation failure');
           return;
         }
       } else if (error) {
-        console.error('Error fetching profile:', error);
-        console.log('Keeping fallback user due to fetch error');
         return;
       } else {
         profile = profileData;
@@ -209,13 +190,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             country: profile.country || 'United States',
           } : undefined,
         };
-        console.log('Enhanced user data assembled:', userData);
 
         setUser(userData);
       }
     } catch (error: any) {
-      console.error('Unexpected error in fetchUserProfile:', error);
-      console.log('Fallback user should already be set');
       
       // Double-check that user is set
       if (!user) {
@@ -226,7 +204,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           account_type: (supabaseUser.user_metadata?.account_type as 'customer' | 'vendor') || 'customer'
         };
         setUser(emergencyFallback);
-        console.log('Emergency fallback user created');
       }
     }
   };
@@ -258,7 +235,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
 
       if (error) {
-        console.error('Login error:', error);
         return false;
       }
 
@@ -284,7 +260,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return false;
     } catch (error) {
-      console.error('Login error:', error);
       return false;
     }
   };
@@ -353,7 +328,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return false;
     } catch (error) {
-      console.error('Signup catch error:', error);
       return false;
     }
   };
@@ -428,6 +402,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+  
   return (
     <AuthContext.Provider value={{ user, login, signup, logout, updateProfile }}>
       {children}

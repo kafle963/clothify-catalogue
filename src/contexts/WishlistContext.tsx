@@ -69,7 +69,6 @@ export const WishlistProvider = ({ children }: WishlistProviderProps) => {
 
   const loadWishlistItems = async () => {
     if (!user || !isSupabaseConfigured) {
-      console.warn('Supabase not configured or user not authenticated. Wishlist will only work locally.');
       return;
     }
 

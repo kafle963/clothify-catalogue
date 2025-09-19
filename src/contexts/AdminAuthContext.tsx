@@ -36,24 +36,20 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (stored) {
         try {
           const adminData = JSON.parse(stored);
-          console.log('💾 Found stored admin session:', adminData.email);
           setAdmin(adminData);
           return;
         } catch (error) {
-          console.error('Error parsing stored admin session:', error);
           localStorage.removeItem('admin_session');
         }
       }
       
       if (!isSupabaseConfigured) {
-        console.log('⚠️ Supabase not configured, using localStorage only');
         return;
       }
 
       // Check if user is authenticated with Supabase
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        console.log('🚫 No Supabase session found');
         setAdmin(null);
         return;
       }
@@ -93,13 +89,10 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log('🔐 Admin login attempt:', { email, isSupabaseConfigured });
       
       if (!isSupabaseConfigured) {
-        console.log('📝 Using fallback authentication');
         // Fallback authentication for development
         if (email === 'admin@clothify.com' && password === 'admin123') {
-          console.log('✅ Credentials match - logging in');
           const mockAdmin: Admin = {
             id: 'mock-admin-1',
             email: 'admin@clothify.com',
@@ -122,13 +115,11 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           toast.success('Successfully logged in as Administrator!');
           return true;
         } else {
-          console.log('❌ Credentials do not match:', { email, password: password.length + ' chars' });
           toast.error('Invalid admin credentials');
           return false;
         }
       }
 
-      console.log('🔍 Supabase is configured, attempting Supabase auth');
       
       // Try Supabase authentication first
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -137,11 +128,9 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
 
       if (error) {
-        console.log('⚠️ Supabase auth failed, trying fallback:', error.message);
         
         // If Supabase auth fails, try fallback for admin
         if (email === 'admin@clothify.com' && password === 'admin123') {
-          console.log('✅ Using fallback admin credentials');
           const mockAdmin: Admin = {
             id: 'mock-admin-1',
             email: 'admin@clothify.com',
@@ -218,7 +207,6 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const logout = async () => {
     try {
-      console.log('🚪 Admin logging out');
       
       // Clear Supabase session if configured
       if (isSupabaseConfigured) {

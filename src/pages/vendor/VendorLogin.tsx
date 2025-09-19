@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useVendorAuth } from '@/contexts/VendorAuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -147,6 +148,53 @@ const VendorLogin = () => {
                 </Link>
               </p>
             </div>
+
+            {/* Demo Credentials Alert */}
+            <Alert className="mt-4 border-blue-200 bg-blue-50">
+              <Store className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-blue-900">Demo Credentials:</strong>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span>vendor@clothify.com</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setEmail('vendor@clothify.com')}
+                        className="h-6 px-2 text-xs text-blue-700 hover:bg-blue-100"
+                      >
+                        Fill
+                      </Button>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span>vendor123</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setPassword('vendor123')}
+                        className="h-6 px-2 text-xs text-blue-700 hover:bg-blue-100"
+                      >
+                        Fill
+                      </Button>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setEmail('vendor@clothify.com');
+                      setPassword('vendor123');
+                    }}
+                    className="text-xs h-7 text-blue-700 border-blue-300 hover:bg-blue-100"
+                  >
+                    Fill Both
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
 
             <div className="mt-4 text-center">
               <Link 

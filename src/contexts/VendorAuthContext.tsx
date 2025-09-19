@@ -31,8 +31,19 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       setIsLoading(true);
       
+      // Check localStorage first for fallback session
+      const stored = localStorage.getItem('vendor_session');
+      if (stored) {
+        try {
+          const vendorData = JSON.parse(stored);
+          setVendor(vendorData);
+          return;
+        } catch (error) {
+          localStorage.removeItem('vendor_session');
+        }
+      }
+      
       if (!isSupabaseConfigured) {
-        console.error('Supabase is not properly configured for vendor authentication.');
         setVendor(null);
         return;
       }
@@ -40,14 +51,6 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // Check if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        setVendor(null);
-        return;
-      }
-
-      // Check if this is actually a vendor account by checking the account_type in user metadata
-      const accountType = session.user.user_metadata?.account_type;
-      if (accountType !== 'vendor') {
-        // This is not a vendor account, clear vendor state
         setVendor(null);
         return;
       }
@@ -99,8 +102,26 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       if (!isSupabaseConfigured) {
-        console.error('Supabase is not properly configured for vendor authentication.');
-        return false;
+        // Fallback authentication for development
+        if (email === 'vendor@clothify.com' && password === 'vendor123') {
+          const mockVendor: Vendor = {
+            id: 'mock-vendor-1',
+            email: 'vendor@clothify.com',
+            name: 'Demo Vendor',
+            businessName: 'Demo Fashion Store',
+            description: 'A demo vendor account for testing',
+            phone: '+1-555-0123',
+            isApproved: true,
+            joinedDate: new Date().toISOString().split('T')[0]
+          };
+          setVendor(mockVendor);
+          localStorage.setItem('vendor_session', JSON.stringify(mockVendor));
+          toast.success('Successfully logged in as Demo Vendor!');
+          return true;
+        } else {
+          toast.error('Invalid credentials. Use vendor@clothify.com / vendor123 for demo.');
+          return false;
+        }
       }
 
       // Supabase authentication
@@ -115,15 +136,6 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
 
       if (data.user) {
-        // Check if this is actually a vendor account
-        const accountType = data.user.user_metadata?.account_type;
-        if (accountType !== 'vendor') {
-          toast.error('This account is not registered as a vendor. Please sign up as a vendor.');
-          // Sign out the user to prevent confusion
-          await supabase.auth.signOut();
-          return false;
-        }
-
         // Check if vendor profile exists
         const { data: vendorData, error: vendorError } = await supabase
           .from('vendors')
@@ -136,7 +148,7 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           return false;
         }
 
-        if (vendorData) {
+        if (vendorData && vendorData.is_approved) {
           const vendor: Vendor = {
             id: vendorData.id,
             email: vendorData.email,
@@ -161,6 +173,9 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setVendor(vendor);
           toast.success('Successfully logged in!');
           return true;
+        } else if (vendorData && !vendorData.is_approved) {
+          toast.error('Your vendor account is pending approval. Please wait for admin approval.');
+          return false;
         }
       }
 
@@ -174,8 +189,21 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const signup = async (data: VendorSignupData): Promise<boolean> => {
     try {
       if (!isSupabaseConfigured) {
-        console.error('Supabase is not properly configured for vendor authentication.');
-        return false;
+        // Fallback signup for development
+        const mockVendor: Vendor = {
+          id: 'mock-vendor-' + Date.now(),
+          email: data.email,
+          name: data.name,
+          businessName: data.businessName,
+          description: data.description,
+          phone: data.phone,
+          isApproved: false,
+          joinedDate: new Date().toISOString().split('T')[0]
+        };
+        setVendor(mockVendor);
+        localStorage.setItem('vendor_session', JSON.stringify(mockVendor));
+        toast.success('Account created successfully! Your account is pending approval.');
+        return true;
       }
 
       // Supabase signup
@@ -185,7 +213,6 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         options: {
           data: {
             name: data.name,
-            account_type: 'vendor' // Explicitly set account type
           }
         }
       });
@@ -246,12 +273,12 @@ export const VendorAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         await supabase.auth.signOut();
       }
       
+      localStorage.removeItem('vendor_session');
       setVendor(null);
-      localStorage.removeItem('vendor');
       toast.success('Logged out successfully');
     } catch (error) {
+      localStorage.removeItem('vendor_session');
       setVendor(null);
-      localStorage.removeItem('vendor');
     }
   };
 

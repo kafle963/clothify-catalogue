@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useVendorAuth } from '@/contexts/VendorAuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { VendorSignupData } from '@/types';
@@ -285,6 +286,22 @@ const VendorSignup = () => {
                 </Link>
               </p>
             </div>
+
+            {/* Demo Information */}
+            <Alert className="mt-4 border-green-200 bg-green-50">
+              <Store className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <div className="space-y-2">
+                  <div>
+                    <strong className="text-green-900">Demo Mode:</strong>
+                  </div>
+                  <div className="text-sm">
+                    <p>In demo mode, you can create a vendor account that will be stored locally. 
+                    Your account will be marked as "pending approval" to demonstrate the approval workflow.</p>
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
       </div>
